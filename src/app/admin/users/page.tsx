@@ -218,7 +218,7 @@ export default function AdminUsersPage() {
                   <td className="px-4 py-3">
                     <div className="font-medium text-foreground flex items-center gap-2">
                       {user.username}
-                      {user.is_admin && <ShieldAlert size={12} className="text-red-500" title="Admin" />}
+                      {user.is_admin && <span title="Admin"><ShieldAlert size={12} className="text-red-500" /></span>}
                     </div>
                     <div className="text-[10px] text-muted-foreground font-mono mt-0.5">{user.id.substring(0, 8)}...</div>
                   </td>
