@@ -2,11 +2,11 @@
   "crons": [
     {
       "path": "/api/odds/sync",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/odds/settle",
-      "schedule": "0 * * * *"
+      "schedule": "0 1 * * *"
     }
   ]
 }
