@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- The V: Primary Color (#CCFF00) -->
+  <path d="M 83 85 L 100 119 L 117 85" stroke="#CCFF00" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- The Arcs/Rings: Secondary Color (#4A90E2) -->
+  <g stroke="#4A90E2" stroke-width="7" stroke-linecap="round">
+    <circle cx="100" cy="100" r="34" stroke-dasharray="178 36" transform="rotate(22 100 100)"/>
+    <circle cx="100" cy="100" r="48" stroke-dasharray="251 50" transform="rotate(44 100 100)"/>
+    <circle cx="100" cy="100" r="62" stroke-dasharray="325 65" transform="rotate(66 100 100)"/>
+  </g>
+</svg>
