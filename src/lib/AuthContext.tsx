@@ -10,6 +10,7 @@ type Profile = {
   role: "analyst" | "allocator";
   avatar_url?: string;
   bio?: string;
+  is_admin?: boolean;
 };
 
 type AuthContextType = {

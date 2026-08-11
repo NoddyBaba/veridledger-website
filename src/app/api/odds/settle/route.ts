@@ -52,7 +52,7 @@ export async function GET() {
       const scoresData = await response.json();
 
       // 3. Grade each pick
-      for (const pick of picks) {
+      for (const pick of (picks as any[])) {
         if (!pick.selection_metadata) continue; // Cannot auto-grade without metadata
         
         const meta = pick.selection_metadata;

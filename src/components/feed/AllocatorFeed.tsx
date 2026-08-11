@@ -18,6 +18,7 @@ type PickWithAnalyst = {
   is_premium: boolean;
   game_start_time: string;
   created_at: string;
+  analyst_id: string;
   profiles: {
     username: string;
     avatar_url: string | null;

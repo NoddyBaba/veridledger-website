@@ -380,7 +380,7 @@ export default function CapperProfile({ params }: { params: Promise<{ username: 
                             contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', borderRadius: '12px', padding: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}
                             itemStyle={{ color: '#CCFF00', fontWeight: '900', fontSize: '16px' }}
                             labelStyle={{ color: '#666', fontSize: '12px', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}
-                            formatter={(value: number) => [`${value > 0 ? '+' : ''}${value}U`, 'Net Profit']}
+                            formatter={(value: any) => [`${value > 0 ? '+' : ''}${value} ₦`, 'Yield']}
                           />
                           <Line type="monotone" dataKey="units" stroke="#CCFF00" strokeWidth={4} dot={{ fill: '#000', stroke: '#CCFF00', strokeWidth: 2, r: 4 }} activeDot={{ r: 8, fill: '#CCFF00', stroke: '#000', strokeWidth: 2 }} />
                         </LineChart>
