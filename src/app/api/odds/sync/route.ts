@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     }
 
     // 1. Fetch live odds from The-Odds-API (Upcoming games across ALL global regions: US, UK, EU, AU)
-    const oddsUrl = `https://api.the-odds-api.com/v4/sports/upcoming/odds/?regions=us,uk,eu,au&markets=h2h,spreads,totals&oddsFormat=american&apiKey=${ODDS_API_KEY}`;
+    const oddsUrl = `https://api.the-odds-api.com/v4/sports/upcoming/odds/?regions=us,uk,eu,au&markets=h2h,spreads,totals&oddsFormat=decimal&apiKey=${ODDS_API_KEY}`;
     
     const response = await fetch(oddsUrl);
     if (!response.ok) {

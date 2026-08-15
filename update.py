@@ -1,4 +1,7 @@
-"use client";
+﻿# -*- coding: utf-8 -*-
+import sys
+
+content = r'''"use client";
 
 import { useState, useEffect } from "react";
 import { Search, Loader2, Link as LinkIcon, X } from "lucide-react";
@@ -71,7 +74,7 @@ function parseOddsApiEvent(eventRow: any): Game | null {
   return {
     id: eventRow.id,
     sport: data.sport_title,
-    title: `${data.away_team} @ ${data.home_team}`,
+    title: ${data.away_team} @ ,
     startTime: data.commence_time,
     isSoccer,
     markets: {
@@ -81,12 +84,12 @@ function parseOddsApiEvent(eventRow: any): Game | null {
         ...(isSoccer ? { draw: { name: 'Draw', odds: drawH2H.price } } : {})
       },
       spread: {
-        away: { name: data.away_team, line: awaySpread.point > 0 ? `+${awaySpread.point}` : `${awaySpread.point}`, odds: awaySpread.price },
-        home: { name: data.home_team, line: homeSpread.point > 0 ? `+${homeSpread.point}` : `${homeSpread.point}`, odds: homeSpread.price }
+        away: { name: data.away_team, line: awaySpread.point > 0 ? + : ${awaySpread.point}, odds: awaySpread.price },
+        home: { name: data.home_team, line: homeSpread.point > 0 ? + : ${homeSpread.point}, odds: homeSpread.price }
       },
       total: {
-        over: { line: `O ${overTotal.point || 0}`, odds: overTotal.price },
-        under: { line: `U ${underTotal.point || 0}`, odds: underTotal.price }
+        over: { line: O , odds: overTotal.price },
+        under: { line: U , odds: underTotal.price }
       }
     }
   };
@@ -209,7 +212,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
   const handleOddClick = (game: Game, type: OddSelection['type'], selectionName: string, odds: number, metadata: any) => {
     if (odds === 0) return;
     onAddSelection({
-      id: `${game.id}-${type}-${selectionName.replace(/\s+/g, '')}`,
+      id: ${game.id}--,
       gameId: game.id,
       sport: game.sport,
       matchTitle: game.title,
@@ -248,9 +251,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
             <button
               key={sport}
               onClick={() => setSportFilter(sport)}
-              className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                sportFilter === sport ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={whitespace-nowrap px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors }
             >
               {sport}
             </button>
@@ -346,7 +347,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                 <OddsCell 
                   line={game.markets.spread.away.line} 
                   price={game.markets.spread.away.odds}
-                  onClick={() => handleOddClick(game, 'spread', `${game.markets.spread.away.name} ${game.markets.spread.away.line}`, game.markets.spread.away.odds, { team: game.markets.spread.away.name, line: parseFloat(game.markets.spread.away.line.replace('+', '')) || 0, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
+                  onClick={() => handleOddClick(game, 'spread', ${game.markets.spread.away.name} , game.markets.spread.away.odds, { team: game.markets.spread.away.name, line: parseFloat(game.markets.spread.away.line.replace('+', '')) || 0, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
                 <OddsCell 
                   line={game.markets.total.under.line} 
@@ -355,16 +356,16 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                 />
                 <OddsCell 
                   price={game.markets.ml.away.odds}
-                  onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.away.name} Winner`, game.markets.ml.away.odds, { team: game.markets.ml.away.name, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
+                  onClick={() => handleOddClick(game, 'ml', ${game.markets.ml.away.name} Winner, game.markets.ml.away.odds, { team: game.markets.ml.away.name, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
               </div>
 
-              <div className={`grid grid-cols-[minmax(120px,1.4fr)_repeat(3,minmax(80px,1fr))] sm:grid-cols-[minmax(150px,1.6fr)_repeat(3,minmax(80px,1fr))] gap-2 items-center px-4 py-2 ${game.isSoccer ? 'border-b border-border' : ''}`}>
+              <div className={grid grid-cols-[minmax(120px,1.4fr)_repeat(3,minmax(80px,1fr))] sm:grid-cols-[minmax(150px,1.6fr)_repeat(3,minmax(80px,1fr))] gap-2 items-center px-4 py-2 }>
                 <span className="text-[13.5px] font-semibold truncate pr-2">{game.markets.ml.home.name} <span className="text-muted-foreground text-xs font-normal hidden sm:inline-block">(Home)</span></span>
                 <OddsCell 
                   line={game.markets.spread.home.line} 
                   price={game.markets.spread.home.odds}
-                  onClick={() => handleOddClick(game, 'spread', `${game.markets.spread.home.name} ${game.markets.spread.home.line}`, game.markets.spread.home.odds, { team: game.markets.spread.home.name, line: parseFloat(game.markets.spread.home.line.replace('+', '')) || 0, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
+                  onClick={() => handleOddClick(game, 'spread', ${game.markets.spread.home.name} , game.markets.spread.home.odds, { team: game.markets.spread.home.name, line: parseFloat(game.markets.spread.home.line.replace('+', '')) || 0, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
                 <OddsCell 
                   line={game.markets.total.over.line} 
@@ -373,7 +374,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                 />
                 <OddsCell 
                   price={game.markets.ml.home.odds}
-                  onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.home.name} Winner`, game.markets.ml.home.odds, { team: game.markets.ml.home.name, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
+                  onClick={() => handleOddClick(game, 'ml', ${game.markets.ml.home.name} Winner, game.markets.ml.home.odds, { team: game.markets.ml.home.name, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
               </div>
               
@@ -395,3 +396,6 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
     </div>
   );
 }
+'''
+with open("src/components/OddsBoard.tsx", "w", encoding="utf-8") as f:
+    f.write(content)
