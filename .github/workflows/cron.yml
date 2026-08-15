@@ -1,14 +1,13 @@
-name: Odds API Sync Cron
+name: 2-Hour Odds Sync
 
 on:
   schedule:
-    # Run every 15 minutes
-    - cron: "*/15 * * * *"
-  # Allow manual trigger from GitHub Actions tab
-  workflow_dispatch:
+    # Runs at minute 0 past every 2nd hour (e.g., 12:00, 2:00, 4:00)
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Allows manual triggering from the GitHub Actions tab
 
 jobs:
-  sync_odds:
+  sync:
     runs-on: ubuntu-latest
     steps:
       - name: Ping Vercel Odds API
