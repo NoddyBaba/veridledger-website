@@ -10,6 +10,7 @@ export type LandingLeaderboardRow = {
   roi: number;
   yield: number;
   winRate: number;
+  averageOdds: number;
 };
 
 function Roi({ value }: { value: number }) {
@@ -45,12 +46,13 @@ export default function Leaderboard({ data }: { data: LandingLeaderboardRow[] })
       <div className="overflow-hidden rounded-2xl border border-obsidian-line bg-obsidian-raised/60">
         {/* Desktop / tablet table */}
         <div className="hidden lg:block">
-          <div className="grid grid-cols-[3.5rem_1fr_7rem_7rem_7rem] border-b border-obsidian-line px-6 py-4 font-mono text-[11px] uppercase tracking-wider text-slate">
+          <div className="grid grid-cols-[3.5rem_1fr_6rem_6rem_6rem_6rem] border-b border-obsidian-line px-6 py-4 font-mono text-[11px] uppercase tracking-wider text-slate">
             <span>Rank</span>
             <span>Analyst</span>
-            <span className="text-right">Verified ROI</span>
-            <span className="text-right">Yield (₦)</span>
+            <span className="text-right">Avg Odds</span>
             <span className="text-right">Win Rate</span>
+            <span className="text-right">Yield (₦)</span>
+            <span className="text-right">Verified ROI</span>
           </div>
 
           {data.map((row, i) => (
@@ -60,7 +62,7 @@ export default function Leaderboard({ data }: { data: LandingLeaderboardRow[] })
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-10% 0px" }}
               transition={{ duration: 0.45, delay: i * 0.08, ease: "easeOut" }}
-              className={`grid grid-cols-[3.5rem_1fr_7rem_7rem_7rem] items-center px-6 py-5 transition-colors hover:bg-white/[0.03] ${
+              className={`grid grid-cols-[3.5rem_1fr_6rem_6rem_6rem_6rem] items-center px-6 py-5 transition-colors hover:bg-white/[0.03] ${
                 i !== data.length - 1 ? "border-b border-obsidian-line" : ""
               }`}
             >
@@ -79,14 +81,17 @@ export default function Leaderboard({ data }: { data: LandingLeaderboardRow[] })
                 <p className="text-sm font-medium text-ink">{row.handle}</p>
                 <p className="mt-0.5 text-xs text-slate">{row.focus}</p>
               </div>
-              <div className="text-right">
-                <Roi value={row.roi} />
+              <div className="tabular text-right font-mono text-sm text-ink/80">
+                {row.averageOdds.toFixed(2)}
+              </div>
+              <div className="tabular text-right font-mono text-sm text-ink/80">
+                {row.winRate.toFixed(1)}%
               </div>
               <div className="tabular text-right font-mono text-sm text-ink/80">
                 +₦{new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(row.yield * 100)}
               </div>
-              <div className="tabular text-right font-mono text-sm text-ink/80">
-                {row.winRate.toFixed(1)}%
+              <div className="text-right">
+                <Roi value={row.roi} />
               </div>
             </motion.div>
           ))}
@@ -121,13 +126,13 @@ export default function Leaderboard({ data }: { data: LandingLeaderboardRow[] })
                 <Roi value={row.roi} />
               </div>
               <p className="mt-1 pl-9 text-xs text-slate">{row.focus}</p>
-              <div className="mt-4 grid grid-cols-2 gap-3 pl-9">
+              <div className="mt-4 grid grid-cols-3 gap-3 pl-9">
                 <div>
                   <p className="font-mono text-[10px] uppercase tracking-wider text-slate">
-                    Yield
+                    Avg Odds
                   </p>
                   <p className="tabular mt-1 font-mono text-sm text-ink/80">
-                    +₦{new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(row.yield * 100)}
+                    {row.averageOdds.toFixed(2)}
                   </p>
                 </div>
                 <div>
@@ -136,6 +141,14 @@ export default function Leaderboard({ data }: { data: LandingLeaderboardRow[] })
                   </p>
                   <p className="tabular mt-1 font-mono text-sm text-ink/80">
                     {row.winRate.toFixed(1)}%
+                  </p>
+                </div>
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-slate">
+                    Yield
+                  </p>
+                  <p className="tabular mt-1 font-mono text-sm text-ink/80">
+                    +₦{new Intl.NumberFormat('en-NG', { maximumFractionDigits: 0 }).format(row.yield * 100)}
                   </p>
                 </div>
               </div>

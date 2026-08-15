@@ -3,6 +3,7 @@ import Hero from "@/components/landing/Hero";
 import StickyFeatures from "@/components/landing/StickyFeatures";
 import Leaderboard from "@/components/landing/Leaderboard";
 import Footer from "@/components/landing/Footer";
+import FloatingDecorations from "@/components/landing/FloatingDecorations";
 
 import { createClient } from "@supabase/supabase-js";
 import { calculateAnalystStats } from "@/lib/stats";
@@ -39,14 +40,16 @@ export default async function Home() {
       roi: stats.roi,
       yield: stats.netUnits,
       winRate: stats.winRate,
+      averageOdds: stats.averageOdds,
     };
   });
 
-  topCappers.sort((a, b) => b.roi - a.roi);
+  topCappers.sort((a, b) => b.yield - a.yield);
   topCappers.forEach((capper, i) => capper.rank = i + 1);
 
   return (
-    <main className="relative bg-obsidian selection:bg-lime/30 text-ink">
+    <main className="relative bg-obsidian selection:bg-lime/30 text-ink overflow-hidden">
+      <FloatingDecorations />
       <Navbar />
       <Hero />
       <StickyFeatures />
