@@ -78,25 +78,6 @@ export default function AllocatorBilling() {
 
   return (
     <div className="space-y-8">
-      {/* Payment Methods Section (Mocked for now) */}
-      <section className="bg-card border border-border rounded-3xl shadow-xl overflow-hidden">
-        <div className="p-6 sm:p-8 border-b border-border bg-muted/20 flex justify-between items-center">
-          <div>
-            <h2 className="text-lg font-bold text-foreground flex items-center gap-2"><CreditCard size={20}/> Payment Methods</h2>
-            <p className="text-sm text-muted-foreground mt-1">Manage your credit cards and billing history.</p>
-          </div>
-          <button 
-            onClick={handleManagePaystack}
-            className="hidden sm:flex bg-secondary text-secondary-foreground hover:bg-secondary/90 px-4 py-2 rounded-lg font-bold text-sm transition-colors items-center gap-2"
-          >
-            <Settings size={16} /> Manage in Paystack
-          </button>
-        </div>
-        <div className="p-6 sm:p-8 text-center text-muted-foreground text-sm">
-          Saved card management via Paystack will be available soon.
-        </div>
-      </section>
-
       {/* Active Subscriptions Section */}
       <section className="bg-card border border-border rounded-3xl shadow-xl overflow-hidden">
         <div className="p-6 sm:p-8 border-b border-border bg-muted/20">

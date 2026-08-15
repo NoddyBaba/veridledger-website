@@ -1,13 +1,68 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, LayoutDashboard, Activity, User, LogIn, Trophy, TrendingUp, PlaySquare, ShieldAlert, Bell } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 export default function BottomNav() {
   const pathname = usePathname();
   const { user, profile } = useAuth();
+  const [hasUnreadAlerts, setHasUnreadAlerts] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+
+    // Initial check for unread alerts
+    const checkUnread = async () => {
+      const { count } = await supabase!
+        .from('alerts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+      
+      setHasUnreadAlerts((count || 0) > 0);
+    };
+
+    checkUnread();
+
+    // Subscribe to new alerts via Realtime
+    const channel = supabase!
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'alerts',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          setHasUnreadAlerts(true);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'alerts',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          if (payload.new.read) {
+            checkUnread(); // Re-check if we marked some as read
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase!.removeChannel(channel);
+    };
+  }, [user]);
 
   const getNavItems = () => {
     if (!user || !profile) {
@@ -69,7 +124,7 @@ export default function BottomNav() {
               >
                 <div className="relative">
                   <Icon size={24} />
-                  {item.label === "Alerts" && false && (
+                  {item.label === "Alerts" && hasUnreadAlerts && (
                     <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-card"></span>
                   )}
                 </div>
