@@ -20,8 +20,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Missing required environment variables" }, { status: 500 });
     }
 
-    // 1. Fetch live odds from The-Odds-API (Upcoming games across major US, UK, and EU sports)
-    const oddsUrl = `https://api.the-odds-api.com/v4/sports/upcoming/odds/?regions=us,uk,eu&markets=h2h,spreads,totals&oddsFormat=american&apiKey=${ODDS_API_KEY}`;
+    // 1. Fetch live odds from The-Odds-API (Upcoming games across ALL global regions: US, UK, EU, AU)
+    const oddsUrl = `https://api.the-odds-api.com/v4/sports/upcoming/odds/?regions=us,uk,eu,au&markets=h2h,spreads,totals&oddsFormat=american&apiKey=${ODDS_API_KEY}`;
     
     const response = await fetch(oddsUrl);
     if (!response.ok) {

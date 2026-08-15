@@ -137,16 +137,49 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
     fetchLiveEvents();
   }, []);
 
+  const getDynamicSports = () => {
+    const categories = new Set<string>();
+    liveGames.forEach(g => {
+      const s = g.sport.toLowerCase();
+      if (s.includes("nfl") || s.includes("ncaa") || s.includes("americanfootball")) categories.add("Football");
+      else if (s.includes("basketball") || s.includes("nba")) categories.add("Basketball");
+      else if (s.includes("soccer") || s.includes("epl")) categories.add("Soccer");
+      else if (s.includes("tennis")) categories.add("Tennis");
+      else if (s.includes("baseball") || s.includes("mlb")) categories.add("Baseball");
+      else if (s.includes("mma") || s.includes("ufc")) categories.add("MMA");
+      else if (s.includes("icehockey") || s.includes("nhl")) categories.add("Ice Hockey");
+      else if (s.includes("cricket")) categories.add("Cricket");
+      else if (s.includes("rugby")) categories.add("Rugby");
+      else if (s.includes("aussierules")) categories.add("Aussie Rules");
+      else {
+        // Fallback for any unknown sports returned by the API
+        const prefix = s.split('_')[0];
+        if (prefix) {
+          categories.add(prefix.charAt(0).toUpperCase() + prefix.slice(1));
+        }
+      }
+    });
+    return ["All", ...Array.from(categories).sort()];
+  };
+
   const filterByGenericSport = (gameSport: string, filter: string) => {
     if (filter === "All") return true;
     const s = gameSport.toLowerCase();
-    if (filter === "Football") return s.includes("nfl") || s.includes("ncaa") || s.includes("football") || s.includes("afl");
+    
+    // Explicit mappings
+    if (filter === "Football") return s.includes("nfl") || s.includes("ncaa") || s.includes("americanfootball") || s.includes("afl");
     if (filter === "Basketball") return s.includes("nba") || s.includes("basketball") || s.includes("wnba");
     if (filter === "Soccer") return s.includes("soccer") || s.includes("epl") || s.includes("fifa");
     if (filter === "Tennis") return s.includes("tennis") || s.includes("atp") || s.includes("wta");
     if (filter === "Baseball") return s.includes("mlb") || s.includes("baseball") || s.includes("npb") || s.includes("kbo");
     if (filter === "MMA") return s.includes("mma") || s.includes("ufc");
-    return false;
+    if (filter === "Ice Hockey") return s.includes("icehockey") || s.includes("nhl");
+    if (filter === "Cricket") return s.includes("cricket");
+    if (filter === "Rugby") return s.includes("rugby");
+    if (filter === "Aussie Rules") return s.includes("aussierules");
+    
+    // Fallback dynamic matching
+    return s.includes(filter.toLowerCase().replace(/\s/g, ''));
   };
 
   const filteredGames = liveGames.filter(g => 
@@ -169,8 +202,8 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
     });
   };
 
-  // Hardcoded cleaner categories instead of raw Odds-API league names
-  const availableSports = ["All", "Football", "Basketball", "Soccer", "Baseball", "Tennis", "MMA"];
+  // Dynamically generated categories based on live API data
+  const availableSports = getDynamicSports();
 
   return (
     <div className="w-full h-full flex flex-col bg-background/50 border border-border rounded-xl overflow-hidden shadow-xl">
