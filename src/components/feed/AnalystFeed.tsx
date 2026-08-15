@@ -78,7 +78,7 @@ export default function AnalystFeed() {
 
   useEffect(() => {
     if (!isAuthLoading) {
-      fetchData();
+      setTimeout(fetchData, 0);
       
       const interval = setInterval(() => {
         fetchData();
