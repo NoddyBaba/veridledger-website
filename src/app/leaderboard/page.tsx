@@ -1,3 +1,4 @@
+import BottomNav from '@/components/BottomNav';
 import { Shield } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";

@@ -17,7 +17,7 @@ export default function AnalystFeed() {
   useEffect(() => {
     async function fetchPicks() {
       // 1. Fetch ALL picks order by game_start_time desc
-      const { data: picksData, error: picksError } = await supabase
+      const { data: picksData, error: picksError } = await supabase!
         .from("picks")
         .select("*")
         .order("created_at", { ascending: false })
@@ -27,13 +27,13 @@ export default function AnalystFeed() {
 
       // 2. Fetch profiles
       const analystIds = Array.from(new Set(picksData.map(p => p.analyst_id)));
-      const { data: profilesData } = await supabase
+      const { data: profilesData } = await supabase!
         .from("profiles")
         .select("id, username")
         .in("id", analystIds);
 
       // 3. Fetch past picks to calculate WR dynamically
-      const { data: pastPicks } = await supabase
+      const { data: pastPicks } = await supabase!
         .from("picks")
         .select("analyst_id, status, odds, stake")
         .in("status", ["WIN", "LOSS"])
