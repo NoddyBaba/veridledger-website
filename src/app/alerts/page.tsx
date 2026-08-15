@@ -1,10 +1,10 @@
 "use client";
 
-import BottomNav from '@/components/BottomNav';
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Bell, CheckCircle2, DollarSign, Target, Info, Check } from "lucide-react";
+import BottomNav from '@/components/BottomNav';
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 

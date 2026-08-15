@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import BottomNav from '@/components/BottomNav';
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { User, LogOut, Shield, CheckCircle2, AlertTriangle, Edit3, CreditCard, Link as LinkIcon, Camera, LayoutGrid, Activity, Loader2 } from "lucide-react";
+import BottomNav from '@/components/BottomNav';
 import Link from "next/link";
 import dayjs from "dayjs";
 import { logActivity } from "@/lib/activity";
