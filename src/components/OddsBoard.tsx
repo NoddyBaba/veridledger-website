@@ -151,7 +151,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
 
   const filteredGames = liveGames.filter(g => 
     filterByGenericSport(g.sport, sportFilter) &&
-    g.title.toLowerCase().includes(search.toLowerCase())
+    (g.title.toLowerCase().includes(search.toLowerCase()) || g.sport.toLowerCase().includes(search.toLowerCase()))
   );
 
   const handleOddClick = (game: Game, type: OddSelection['type'], selectionName: string, odds: number, metadata: any) => {
