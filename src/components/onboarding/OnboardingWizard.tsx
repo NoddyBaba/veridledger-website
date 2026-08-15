@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, ChevronRight, Sparkles, Target, Zap, ShieldAlert, BarChart3, TrendingUp, Search, Infinity } from "lucide-react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabase";
 
 const SPORTS = [
   "Football (Soccer)", "Basketball", "Tennis", "Table Tennis", "Volleyball", 
@@ -59,7 +59,6 @@ const PERSONAS = [
 ];
 
 export default function OnboardingWizard({ onComplete }: { onComplete: () => void }) {
-  const supabase = createClientComponentClient();
   const [step, setStep] = useState(1);
   const [selectedSports, setSelectedSports] = useState<string[]>([]);
   const [selectedPersona, setSelectedPersona] = useState<string | null>(null);
@@ -74,7 +73,7 @@ export default function OnboardingWizard({ onComplete }: { onComplete: () => voi
   };
 
   const handleFinish = async () => {
-    if (!selectedPersona) return;
+    if (!selectedPersona || !supabase) return;
     setIsSaving(true);
     
     try {

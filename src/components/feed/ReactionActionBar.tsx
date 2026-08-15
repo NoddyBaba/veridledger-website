@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MessageSquare, Flame, ThumbsDown, Lock } from "lucide-react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { supabase } from "@/lib/supabase";
 
 export default function ReactionActionBar({ 
   pickId, 
