@@ -29,7 +29,8 @@ export async function GET(request: Request) {
       throw new Error(`The-Odds-API returned ${response.status}: ${errorText}`);
     }
 
-    const events = await response.json();
+    const allEvents = await response.json();
+    const events = allEvents.filter((e: any) => !e.sport_key.toLowerCase().includes("soccer"));
 
     // 2. Initialize Supabase with the Service Role Key to bypass RLS
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
