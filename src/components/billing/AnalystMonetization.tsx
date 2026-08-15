@@ -32,6 +32,7 @@ export default function AnalystMonetization() {
   const [bankCode, setBankCode] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
+  const [isResolving, setIsResolving] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -86,6 +87,40 @@ export default function AnalystMonetization() {
     }
     loadData();
   }, [user]);
+
+  useEffect(() => {
+    async function resolveAccount() {
+      if (accountNumber.length === 10 && bankCode) {
+        setIsResolving(true);
+        setFormError("");
+        try {
+          const res = await fetch(`/api/paystack/resolve?account_number=${accountNumber}&bank_code=${bankCode}`);
+          const data = await res.json();
+          if (res.ok && data.accountName) {
+            setAccountName(data.accountName);
+          } else {
+            setFormError(data.error || "Could not resolve account name");
+            setAccountName("");
+          }
+        } catch (err) {
+          console.error(err);
+          setFormError("Failed to connect to resolution service");
+          setAccountName("");
+        } finally {
+          setIsResolving(false);
+        }
+      } else {
+        setAccountName(""); // Clear if they edit the number
+      }
+    }
+    
+    // Add a small debounce
+    const timeoutId = setTimeout(() => {
+      resolveAccount();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [accountNumber, bankCode]);
 
   const activeCount = subscribers.length;
   const estimatedMRR = activeCount * PRICE_PER_MONTH;
@@ -248,12 +283,15 @@ export default function AnalystMonetization() {
                   <UserIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <input 
                     type="text" 
-                    placeholder="John Doe"
+                    placeholder="Auto-filled by Paystack"
                     value={accountName}
-                    onChange={(e) => setAccountName(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-lg text-sm font-medium focus:outline-none focus:border-primary"
+                    readOnly
+                    className="w-full pl-9 pr-10 py-2.5 bg-muted border border-border rounded-lg text-sm font-bold text-foreground focus:outline-none cursor-not-allowed"
                     required
                   />
+                  {isResolving && (
+                    <Loader2 size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-primary animate-spin" />
+                  )}
                 </div>
               </div>
 
