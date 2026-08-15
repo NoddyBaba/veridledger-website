@@ -382,29 +382,29 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
               <OddsCell 
                 price={game.markets.ml.home.odds} 
                 isActive={activeSelections.has(`${game.id}-ml-${game.markets.ml.home.name}Winner`)}
-                onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.home.name} Winner`, game.markets.ml.home.odds, { team: game.markets.ml.home.name })}
+                onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.home.name} Winner`, game.markets.ml.home.odds, { team: game.markets.ml.home.name, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
               />
               <div className={disableDraw ? "opacity-30 pointer-events-none" : ""}>
                 <OddsCell 
                   price={game.markets.ml.draw?.odds || 0} 
                   isActive={activeSelections.has(`${game.id}-ml-Draw`)}
-                  onClick={() => handleOddClick(game, 'ml', 'Draw', game.markets.ml.draw?.odds || 0, { team: 'Draw' })}
+                  onClick={() => handleOddClick(game, 'ml', 'Draw', game.markets.ml.draw?.odds || 0, { team: \"Draw\", homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
               </div>
               <OddsCell 
                 price={game.markets.ml.away.odds} 
                 isActive={activeSelections.has(`${game.id}-ml-${game.markets.ml.away.name}Winner`)}
-                onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.away.name} Winner`, game.markets.ml.away.odds, { team: game.markets.ml.away.name })}
+                onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.away.name} Winner`, game.markets.ml.away.odds, { team: game.markets.ml.away.name, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
               />
               <OddsCell 
                 price={game.markets.total.over.odds} 
                 isActive={activeSelections.has(`${game.id}-total-${game.markets.total.over.line}`)}
-                onClick={() => handleOddClick(game, 'total', game.markets.total.over.line || 'Over', game.markets.total.over.odds, { type: 'over' })}
+                onClick={() => handleOddClick(game, 'total', game.markets.total.over.line || 'Over', game.markets.total.over.odds, { type: \"over\", homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name, line: parseFloat(game.markets.total.over.line.replace(/[^0-9.]/g, \"\")) || 2.5 })}
               />
               <OddsCell 
                 price={game.markets.total.under.odds} 
                 isActive={activeSelections.has(`${game.id}-total-${game.markets.total.under.line}`)}
-                onClick={() => handleOddClick(game, 'total', game.markets.total.under.line || 'Under', game.markets.total.under.odds, { type: 'under' })}
+                onClick={() => handleOddClick(game, 'total', game.markets.total.under.line || 'Under', game.markets.total.under.odds, { type: \"under\", homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name, line: parseFloat(game.markets.total.under.line.replace(/[^0-9.]/g, \"\")) || 2.5 })}
               />
 
               <div className="flex items-center justify-center">
