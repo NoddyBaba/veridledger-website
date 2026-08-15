@@ -76,18 +76,28 @@ export default function ActivityLogPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Left Sidebar Navigation (Desktop) */}
-          <div className="hidden lg:block lg:col-span-3 space-y-1">
-             <div className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 px-3">General</div>
-             <Link href="/profile" className="w-full flex items-center gap-3 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-white/[0.02] rounded-lg font-bold transition-colors">
-                <User size={18} /> Profile Details
-             </Link>
-             <button disabled className="w-full flex items-center gap-3 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-white/[0.02] rounded-lg font-bold transition-colors cursor-not-allowed">
-                <CreditCard size={18} /> Billing
-             </button>
-             <button className="w-full flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg font-bold transition-colors">
-                <Activity size={18} /> Activity Log
-             </button>
+          {/* Sidebar Navigation */}
+          <div className="lg:col-span-3">
+             <div className="hidden lg:block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-4 px-3">General</div>
+             <div className="flex overflow-x-auto lg:flex-col gap-2 lg:gap-1 pb-4 lg:pb-0 hide-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
+               <Link href="/profile" className="whitespace-nowrap flex-shrink-0 flex items-center gap-3 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-white/[0.02] rounded-lg font-bold transition-colors">
+                  <User size={18} /> Profile Details
+               </Link>
+               <Link href="/profile/billing" className="whitespace-nowrap flex-shrink-0 flex items-center gap-3 px-3 py-2 text-muted-foreground hover:text-foreground hover:bg-white/[0.02] rounded-lg font-bold transition-colors">
+                  <CreditCard size={18} /> {isAnalyst ? 'Monetization' : 'Billing'}
+               </Link>
+               <button className="whitespace-nowrap flex-shrink-0 flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg font-bold transition-colors">
+                  <Activity size={18} /> Activity Log
+               </button>
+               
+               <div className="hidden lg:block mt-8 pt-6 border-t border-border"></div>
+               <button 
+                 onClick={handleSignOut}
+                 className="hidden lg:flex whitespace-nowrap flex-shrink-0 w-full items-center gap-3 px-3 py-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-lg font-bold transition-colors"
+               >
+                 <LogOut size={18} /> Sign Out
+               </button>
+             </div>
           </div>
 
           {/* Right Content Pane (Timeline) */}
