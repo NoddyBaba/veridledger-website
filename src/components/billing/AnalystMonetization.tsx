@@ -18,13 +18,7 @@ type Subscriber = {
   }
 };
 
-const NIGERIAN_BANKS = [
-  { code: "044", name: "Access Bank" },
-  { code: "058", name: "Guaranty Trust Bank (GTB)" },
-  { code: "057", name: "Zenith Bank" },
-  { code: "033", name: "United Bank for Africa (UBA)" },
-  { code: "011", name: "First Bank of Nigeria" },
-];
+type Bank = { code: string; name: string };
 
 export default function AnalystMonetization() {
   const { user } = useAuth();
@@ -34,7 +28,8 @@ export default function AnalystMonetization() {
   const [isPaystackConnected, setIsPaystackConnected] = useState(false);
 
   const [showBankForm, setShowBankForm] = useState(false);
-  const [bankCode, setBankCode] = useState(NIGERIAN_BANKS[0].code);
+  const [banks, setBanks] = useState<Bank[]>([]);
+  const [bankCode, setBankCode] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,6 +53,18 @@ export default function AnalystMonetization() {
           
         if (subError) throw subError;
         setSubscribers((subData as unknown) as Subscriber[]);
+
+        // Fetch Paystack Banks
+        try {
+          const bankRes = await fetch("https://api.paystack.co/bank?country=nigeria");
+          const bankJson = await bankRes.json();
+          if (bankJson.status && bankJson.data) {
+            setBanks(bankJson.data);
+            if (bankJson.data.length > 0) setBankCode(bankJson.data[0].code);
+          }
+        } catch (e) {
+          console.error("Failed to load banks", e);
+        }
 
         // Check if Subaccount exists
         const { data: profileData, error: profError } = await supabase!
@@ -208,9 +215,13 @@ export default function AnalystMonetization() {
                     className="w-full pl-9 pr-4 py-2.5 bg-background border border-border rounded-lg text-sm font-medium focus:outline-none focus:border-primary appearance-none"
                     required
                   >
-                    {NIGERIAN_BANKS.map(bank => (
-                      <option key={bank.code} value={bank.code}>{bank.name}</option>
-                    ))}
+                    {banks.length > 0 ? (
+                      banks.map(bank => (
+                        <option key={bank.code} value={bank.code}>{bank.name}</option>
+                      ))
+                    ) : (
+                      <option value="" disabled>Loading banks...</option>
+                    )}
                   </select>
                 </div>
               </div>
