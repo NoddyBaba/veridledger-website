@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import BottomNav from "@/components/BottomNav";
 import OddsBoard from "@/components/OddsBoard";
 import BetSlipDrawer from "@/components/BetSlipDrawer";
+import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { calculateAnalystStats } from "@/lib/stats";
@@ -10,6 +11,7 @@ import { calculateAnalystStats } from "@/lib/stats";
 export default function DeckPage() {
   const { user, profile } = useAuth();
   const [picks, setPicks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<any>({ roi: "+0.0%", winRate: "0%", streak: "0W", mrr: 0, totalGraded: 0 });
   const [filter, setFilter] = useState<"All" | "LOCKED" | "GRADED">("All");
 
@@ -48,6 +50,7 @@ export default function DeckPage() {
         mrr: 2500,
         totalGraded: computed.totalGraded
       });
+      setIsLoading(false);
     }
   }
 
@@ -75,8 +78,17 @@ export default function DeckPage() {
     return <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm0 2a3 3 0 0 1 3 3v3H9V7a3 3 0 0 1 3-3z"/></svg>;
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-screen bg-background items-center justify-center">
+        <CryptoEngineLoader text="VERIFYING LEDGER..." size="lg" />
+        <BottomNav />
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col h-screen bg-background">
+    <div className="flex flex-col h-screen bg-background animate-in fade-in duration-500">
       <div className="flex-1 overflow-y-auto px-5 md:px-10 py-7 pb-24 custom-scroll">
         
         {/* Header */}
