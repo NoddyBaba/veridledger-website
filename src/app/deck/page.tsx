@@ -156,8 +156,8 @@ export default function DeckPage() {
               <button
                 key={tab}
                 onClick={() => setFilter(tab as any)}
-                className={`border-none bg-transparent font-sans text-[12px] font-bold tracking-widest px-3.5 py-1.5 rounded-full cursor-pointer transition-all ${
-                  filter === tab ? "bg-primary text-primary-foreground" : "text-secondary hover:text-foreground"
+                className={`border-none font-sans text-[12px] font-bold tracking-widest px-3.5 py-1.5 rounded-full cursor-pointer transition-all ${
+                  filter === tab ? "bg-primary text-primary-foreground" : "bg-transparent text-secondary hover:text-foreground"
                 }`}
               >
                 {tab === "All" ? "All" : tab === "LOCKED" ? "Locked" : "Graded"}
