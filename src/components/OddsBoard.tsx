@@ -70,7 +70,7 @@ function parseOddsApiEvent(eventRow: any): Game | null {
 
   return {
     id: eventRow.id,
-    sport: data.sport_title,
+    sport: isSoccer ? 'Football' : (data.sport_key.toLowerCase().includes('americanfootball') || data.sport_key.toLowerCase().includes('nfl') ? 'American Football' : data.sport_title),
     title: `${data.away_team} @ ${data.home_team}`,
     startTime: data.commence_time,
     isSoccer,
@@ -81,12 +81,12 @@ function parseOddsApiEvent(eventRow: any): Game | null {
         ...(isSoccer ? { draw: { name: 'Draw', odds: drawH2H.price } } : {})
       },
       spread: {
-        away: { name: data.away_team, line: awaySpread.point > 0 ? `+${awaySpread.point}` : `${awaySpread.point}`, odds: awaySpread.price },
-        home: { name: data.home_team, line: homeSpread.point > 0 ? `+${homeSpread.point}` : `${homeSpread.point}`, odds: homeSpread.price }
+        away: { name: data.away_team, line: awaySpread.point !== undefined && awaySpread.point > 0 ? `+${awaySpread.point}` : `${awaySpread.point || ''}`, odds: awaySpread.price },
+        home: { name: data.home_team, line: homeSpread.point !== undefined && homeSpread.point > 0 ? `+${homeSpread.point}` : `${homeSpread.point || ''}`, odds: homeSpread.price }
       },
       total: {
-        over: { line: `O ${overTotal.point || 0}`, odds: overTotal.price },
-        under: { line: `U ${underTotal.point || 0}`, odds: underTotal.price }
+        over: { line: overTotal.point ? `O ${overTotal.point}` : '', odds: overTotal.price },
+        under: { line: underTotal.point ? `U ${underTotal.point}` : '', odds: underTotal.price }
       }
     }
   };
@@ -105,7 +105,7 @@ const OddsCell = ({ line, price, onClick, disabled }: { line?: string, price: nu
       onClick={onClick}
       className="flex flex-col items-center justify-center gap-0.5 h-12 rounded-md border border-border bg-muted/20 hover:border-muted-foreground/40 hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary transition-colors cursor-pointer group"
     >
-      {line && line !== 'undefined' && <span className="text-[13px] font-bold font-mono group-hover:text-primary transition-colors">{line}</span>}
+      {line && line !== 'undefined' && line !== '' && <span className="text-[13px] font-bold font-mono group-hover:text-primary transition-colors">{line}</span>}
       <span className="text-[11px] text-muted-foreground font-mono">{price.toFixed(2)}</span>
     </button>
   );
@@ -167,9 +167,9 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
     const categories = new Set<string>();
     liveGames.forEach(g => {
       const s = g.sport.toLowerCase();
-      if (s.includes("nfl") || s.includes("ncaa") || s.includes("americanfootball") || s.includes("afl")) categories.add("Football");
+      if (s.includes("american football") || s.includes("nfl") || s.includes("ncaa")) categories.add("American Football");
       else if (s.includes("basketball") || s.includes("nba")) categories.add("Basketball");
-      else if (s.includes("soccer") || s.includes("epl") || s.includes("fifa")) categories.add("Soccer");
+      else if (s.includes("football") || s.includes("soccer") || s.includes("epl") || s.includes("fifa")) categories.add("Football");
       else if (s.includes("tennis") || s.includes("atp") || s.includes("wta")) categories.add("Tennis");
       else if (s.includes("baseball") || s.includes("mlb")) categories.add("Baseball");
       else if (s.includes("mma") || s.includes("ufc")) categories.add("MMA");
@@ -186,9 +186,9 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
     if (filter === "All") return true;
     const s = gameSport.toLowerCase();
     
-    if (filter === "Football") return s.includes("nfl") || s.includes("ncaa") || s.includes("americanfootball") || s.includes("afl");
+    if (filter === "American Football") return s.includes("american football") || s.includes("nfl") || s.includes("ncaa") || s.includes("afl");
     if (filter === "Basketball") return s.includes("nba") || s.includes("basketball") || s.includes("wnba");
-    if (filter === "Soccer") return s.includes("soccer") || s.includes("epl") || s.includes("fifa");
+    if (filter === "Football") return s.includes("football") || s.includes("soccer") || s.includes("epl") || s.includes("fifa");
     if (filter === "Tennis") return s.includes("tennis") || s.includes("atp") || s.includes("wta");
     if (filter === "Baseball") return s.includes("mlb") || s.includes("baseball") || s.includes("npb") || s.includes("kbo");
     if (filter === "MMA") return s.includes("mma") || s.includes("ufc");
@@ -348,10 +348,11 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                   price={game.markets.spread.away.odds}
                   onClick={() => handleOddClick(game, 'spread', `${game.markets.spread.away.name} ${game.markets.spread.away.line}`, game.markets.spread.away.odds, { team: game.markets.spread.away.name, line: parseFloat(game.markets.spread.away.line.replace('+', '')) || 0, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
+                {/* Note: Over is usually top row, Under is bottom row. Changing this! */}
                 <OddsCell 
-                  line={game.markets.total.under.line} 
-                  price={game.markets.total.under.odds}
-                  onClick={() => handleOddClick(game, 'total', game.markets.total.under.line, game.markets.total.under.odds, { line: parseFloat(game.markets.total.under.line.replace('U ', '')) || 0, type: 'under', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
+                  line={game.markets.total.over.line} 
+                  price={game.markets.total.over.odds}
+                  onClick={() => handleOddClick(game, 'total', game.markets.total.over.line, game.markets.total.over.odds, { line: parseFloat(game.markets.total.over.line.replace('O ', '')) || 0, type: 'over', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
                 <OddsCell 
                   price={game.markets.ml.away.odds}
@@ -366,10 +367,11 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                   price={game.markets.spread.home.odds}
                   onClick={() => handleOddClick(game, 'spread', `${game.markets.spread.home.name} ${game.markets.spread.home.line}`, game.markets.spread.home.odds, { team: game.markets.spread.home.name, line: parseFloat(game.markets.spread.home.line.replace('+', '')) || 0, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
+                {/* Under is bottom row */}
                 <OddsCell 
-                  line={game.markets.total.over.line} 
-                  price={game.markets.total.over.odds}
-                  onClick={() => handleOddClick(game, 'total', game.markets.total.over.line, game.markets.total.over.odds, { line: parseFloat(game.markets.total.over.line.replace('O ', '')) || 0, type: 'over', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
+                  line={game.markets.total.under.line} 
+                  price={game.markets.total.under.odds}
+                  onClick={() => handleOddClick(game, 'total', game.markets.total.under.line, game.markets.total.under.odds, { line: parseFloat(game.markets.total.under.line.replace('U ', '')) || 0, type: 'under', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
                 <OddsCell 
                   price={game.markets.ml.home.odds}
