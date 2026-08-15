@@ -36,20 +36,13 @@ export default function BetSlipDrawer({
   // Calculate combined odds (basic american odds math)
   const calculateCombinedOdds = () => {
     if (selections.length === 0) return 0;
-    if (selections.length === 1) return selections[0].odds;
     
-    // Convert American to Decimal, multiply, convert back to American
     let decimalOdds = 1;
     selections.forEach(sel => {
-      let dec = sel.odds > 0 ? (sel.odds / 100) + 1 : (100 / Math.abs(sel.odds)) + 1;
-      decimalOdds *= dec;
+      decimalOdds *= sel.odds;
     });
     
-    let combinedAmerican = decimalOdds >= 2 
-      ? (decimalOdds - 1) * 100 
-      : -100 / (decimalOdds - 1);
-      
-    return Math.round(combinedAmerican);
+    return decimalOdds;
   };
 
   const combinedOdds = calculateCombinedOdds();
@@ -58,13 +51,7 @@ export default function BetSlipDrawer({
   // Calculate Potential Payout
   const calculatePayout = () => {
     if (combinedOdds === 0 || stake <= 0) return 0;
-    let profit = 0;
-    if (combinedOdds > 0) {
-      profit = stake * (combinedOdds / 100);
-    } else {
-      profit = stake / (Math.abs(combinedOdds) / 100);
-    }
-    return stake + profit;
+    return stake * combinedOdds;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -218,13 +205,13 @@ export default function BetSlipDrawer({
               {/* Stake Amount */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-muted-foreground flex justify-between">
-                  <span>Stake Amount (₦)</span>
-                  <span className="text-foreground font-semibold">₦{stake.toLocaleString()}</span>
+                  <span>Stake Amount (Units)</span>
+                  <span className="text-foreground font-semibold">{stake.toLocaleString()} U</span>
                 </label>
                 
                 {/* Custom Input */}
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">₦</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">U</span>
                   <input 
                     type="number"
                     min="100"
@@ -248,7 +235,7 @@ export default function BetSlipDrawer({
                         : 'bg-background border border-border text-muted-foreground hover:border-primary'
                       }`}
                     >
-                      ₦{amt.toLocaleString()}
+                      {amt.toLocaleString()} U
                     </button>
                   ))}
                 </div>
@@ -302,8 +289,8 @@ export default function BetSlipDrawer({
         {selections.length > 0 && (
           <div className="p-4 border-t border-border bg-background/80 backdrop-blur-md space-y-3">
             <div className="flex justify-between items-center text-sm font-bold bg-secondary/10 border border-secondary/20 p-2 rounded-md">
-              <span className="text-muted-foreground">Potential Win:</span>
-              <span className="text-secondary text-lg">₦{calculatePayout().toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+              <span className="text-muted-foreground">Implied Return:</span>
+              <span className="text-secondary text-lg">{calculatePayout().toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} U</span>
             </div>
             <button 
               onClick={handleSubmit}
