@@ -69,7 +69,7 @@ export default function BottomNav() {
               >
                 <div className="relative">
                   <Icon size={24} />
-                  {item.label === "Alerts" && (
+                  {item.label === "Alerts" && false && (
                     <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full border-2 border-card"></span>
                   )}
                 </div>
