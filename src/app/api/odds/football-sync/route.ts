@@ -21,34 +21,60 @@ export async function GET(request: Request) {
     }
 
     const today = new Date().toISOString().split('T')[0];
-    const oddsUrl = "https://v3.football.api-sports.io/odds?date=" + today;
-    
-    const response = await fetch(oddsUrl, {
-        headers: {
-            "x-rapidapi-key": API_FOOTBALL_KEY,
-            "x-rapidapi-host": "v3.football.api-sports.io"
-        }
-    });
+    const headers = {
+        "x-rapidapi-key": API_FOOTBALL_KEY,
+        "x-rapidapi-host": "v3.football.api-sports.io"
+    };
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error("API-Football returned " + response.status + ": " + errorText);
+    // 1. Fetch Fixtures for today to get team names
+    const fixturesUrl = "https://v3.football.api-sports.io/fixtures?date=" + today;
+    const fixturesResponse = await fetch(fixturesUrl, { headers });
+    
+    if (!fixturesResponse.ok) {
+      const errorText = await fixturesResponse.text();
+      throw new Error("API-Football Fixtures returned " + fixturesResponse.status + ": " + errorText);
+    }
+    const fixturesData = await fixturesResponse.json();
+    
+    // Create lookup map: fixture_id -> teams
+    const fixtureMap = new Map();
+    if (fixturesData.response) {
+      fixturesData.response.forEach((f: any) => {
+        fixtureMap.set(f.fixture.id, {
+          home: f.teams?.home?.name || 'Home',
+          away: f.teams?.away?.name || 'Away',
+          league: f.league?.name || 'Football'
+        });
+      });
     }
 
-    const data = await response.json();
+    // 2. Fetch Odds for today (Page 1 is sufficient for demo/top 10)
+    const oddsUrl = "https://v3.football.api-sports.io/odds?date=" + today;
+    const oddsResponse = await fetch(oddsUrl, { headers });
+
+    if (!oddsResponse.ok) {
+      const errorText = await oddsResponse.text();
+      throw new Error("API-Football Odds returned " + oddsResponse.status + ": " + errorText);
+    }
+
+    const data = await oddsResponse.json();
     const events = data.response;
 
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const mappedEvents = events.map((event: any) => ({
-      id: "football_" + event.fixture.id,
-      sport_key: 'soccer_api_football',
-      commence_time: event.fixture.date,
-      home_team: event.fixture.home?.name || 'Home',
-      away_team: event.fixture.away?.name || 'Away',
-      odds_data: event,
-      updated_at: new Date().toISOString(),
-    }));
+    const mappedEvents = events.map((event: any) => {
+      const fixInfo = fixtureMap.get(event.fixture.id) || { home: 'Home', away: 'Away', league: 'Football' };
+      
+      return {
+        id: "football_" + event.fixture.id,
+        sport_key: 'soccer_api_football',
+        commence_time: event.fixture.date,
+        home_team: fixInfo.home,
+        away_team: fixInfo.away,
+        odds_data: { ...event, league_name: fixInfo.league },
+        updated_at: new Date().toISOString(),
+      };
+    });
 
     if(mappedEvents.length > 0) {
         const { error: dbError } = await supabaseAdmin
