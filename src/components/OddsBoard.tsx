@@ -211,7 +211,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
     
     if (filter === "American Football") return s.includes("american football") || s.includes("nfl") || s.includes("ncaa");
     if (filter === "Basketball") return s.includes("nba") || s.includes("basketball") || s.includes("wnba");
-    if (filter === "Football") return s.includes("football") || s.includes("soccer") || s.includes("epl") || s.includes("fifa");
+    if (filter === "Football") return (s.includes("football") && !s.includes("american")) || s.includes("soccer") || s.includes("epl") || s.includes("fifa");
     if (filter === "Tennis") return s.includes("tennis") || s.includes("atp") || s.includes("wta");
     if (filter === "Baseball") return s.includes("mlb") || s.includes("baseball") || s.includes("npb") || s.includes("kbo");
     if (filter === "MMA") return s.includes("mma") || s.includes("ufc");
@@ -273,7 +273,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
             </button>
           )}
         </div>
-        <div className="flex gap-1.5 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0 hide-scrollbar bg-muted/30 p-1 rounded-full border border-border">
+        <div className="flex gap-1.5 w-full xl:w-auto overflow-x-auto pb-1 xl:pb-0 bg-muted/30 p-1 rounded-full border border-border [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {availableSports.map(sport => (
             <button
               key={sport}
