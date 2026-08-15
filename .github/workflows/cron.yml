@@ -1,0 +1,16 @@
+name: Odds API Sync Cron
+
+on:
+  schedule:
+    # Run every 15 minutes
+    - cron: "*/15 * * * *"
+  # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  sync_odds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Vercel Odds API
+        run: |
+          curl -X GET "${{ secrets.VERCEL_PRODUCTION_URL }}/api/odds/sync?secret=${{ secrets.CRON_SECRET }}"
