@@ -335,12 +335,12 @@ export default function CapperProfile({ params }: { params: Promise<{ username: 
                         ) : (
                           <div className="mt-2 flex justify-between items-center p-4 rounded-xl border border-white/5 bg-black/20 group-hover:border-primary/20 transition-colors">
                             <div className="space-y-1 flex-1 min-w-0 pr-4">
-                              <div className="text-base font-bold text-foreground break-words line-clamp-3">{pick.selection}</div>
+                              <div className="text-base font-bold text-foreground break-words line-clamp-3">{pick.selection.replace(/\((\d+\.\d{3,})\)/g, (m, p1) => `(${Number(p1).toFixed(2)})`)}</div>
                               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{pick.stake}U Stake</div>
                             </div>
                             <div className="flex flex-col items-end gap-2">
                               <span className="text-sm bg-white/5 border border-white/10 px-3 py-1 rounded font-mono font-bold">
-                                {pick.odds > 0 ? `+${pick.odds}` : pick.odds}
+                                {Number(pick.odds).toFixed(2)}
                               </span>
                               <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-sm ${
                                 pick.status === "WIN" ? "text-primary bg-primary/10 border border-primary/20" :

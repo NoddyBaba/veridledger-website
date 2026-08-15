@@ -142,8 +142,8 @@ export default function OraclePage() {
                   </div>
                   <h3 className="text-lg font-bold text-foreground">{pick.match_title}</h3>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="text-sm font-medium text-foreground">{pick.selection}</span>
-                    <span className="text-sm font-bold text-secondary">{pick.odds > 0 ? `+${pick.odds}` : pick.odds}</span>
+                    <span className="text-sm font-medium text-foreground">{pick.selection.replace(/\((\d+\.\d{3,})\)/g, (m, p1) => `(${Number(p1).toFixed(2)})`)}</span>
+                    <span className="text-sm font-bold text-secondary">{Number(pick.odds).toFixed(2)}</span>
                     <span className="text-sm text-muted-foreground font-medium">• {pick.stake}U Stake</span>
                   </div>
                 </div>

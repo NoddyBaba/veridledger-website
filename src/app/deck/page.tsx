@@ -230,9 +230,9 @@ export default function AnalystDeck() {
               <div key={pick.id} className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-colors">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-foreground">{pick.selection}</span>
+                    <span className="text-xs font-bold text-foreground">{pick.selection.replace(/\((\d+\.\d{3,})\)/g, (m, p1) => `(${Number(p1).toFixed(2)})`)}</span>
                     <span className="text-[10px] bg-background border border-border px-1.5 py-0.5 rounded text-muted-foreground font-mono">
-                      {pick.odds > 0 ? `+${pick.odds}` : pick.odds}
+                      {Number(pick.odds).toFixed(2)}
                     </span>
                     {pick.is_premium && (
                       <span className="text-[9px] bg-primary/10 text-primary uppercase font-bold px-1.5 py-0.5 rounded flex items-center gap-1">

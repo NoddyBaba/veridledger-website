@@ -45,7 +45,7 @@ export default function BetSlipDrawer({
     return decimalOdds;
   };
 
-  const combinedOdds = calculateCombinedOdds();
+  const combinedOdds = Number(calculateCombinedOdds().toFixed(2));
   const displayOdds = combinedOdds > 0 ? `+${combinedOdds}` : combinedOdds;
 
   // Calculate Potential Payout

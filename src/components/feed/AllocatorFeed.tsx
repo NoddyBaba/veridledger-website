@@ -235,9 +235,9 @@ export default function AllocatorFeed() {
                 </div>
                 <h3 className="text-base font-bold text-foreground truncate">{pick.match_title}</h3>
                 <div className="flex items-center gap-2 text-sm font-medium">
-                  <span className="text-secondary">{pick.selection}</span>
+                  <span className="text-secondary">{pick.selection.replace(/\((\d+\.\d{3,})\)/g, (m, p1) => `(${Number(p1).toFixed(2)})`)}</span>
                   <span className="text-muted-foreground">@</span>
-                  <span className="text-foreground">{pick.odds > 0 ? `+${pick.odds}` : pick.odds}</span>
+                  <span className="text-foreground">{Number(pick.odds).toFixed(2)}</span>
                 </div>
               </div>
 
