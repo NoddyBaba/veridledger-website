@@ -189,6 +189,10 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
       else if (s.includes("tennis") || s.includes("atp") || s.includes("wta")) categories.add("Tennis");
       else if (s.includes("baseball") || s.includes("mlb")) categories.add("Baseball");
       else if (s.includes("mma") || s.includes("ufc")) categories.add("MMA");
+      else if (s.includes("afl") || s.includes("aussie")) categories.add("Aussie Rules");
+      else if (s.includes("cricket") || s.includes("test match") || s.includes("t20") || s.includes("odi")) categories.add("Cricket");
+      else if (s.includes("rugby")) categories.add("Rugby");
+      else if (s.includes("ice hockey") || s.includes("nhl")) categories.add("Ice Hockey");
       else categories.add(g.sport); 
     });
     
@@ -205,12 +209,16 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
     if (filter === "All") return true;
     const s = gameSport.toLowerCase();
     
-    if (filter === "American Football") return s.includes("american football") || s.includes("nfl") || s.includes("ncaa") || s.includes("afl");
+    if (filter === "American Football") return s.includes("american football") || s.includes("nfl") || s.includes("ncaa");
     if (filter === "Basketball") return s.includes("nba") || s.includes("basketball") || s.includes("wnba");
     if (filter === "Football") return s.includes("football") || s.includes("soccer") || s.includes("epl") || s.includes("fifa");
     if (filter === "Tennis") return s.includes("tennis") || s.includes("atp") || s.includes("wta");
     if (filter === "Baseball") return s.includes("mlb") || s.includes("baseball") || s.includes("npb") || s.includes("kbo");
     if (filter === "MMA") return s.includes("mma") || s.includes("ufc");
+    if (filter === "Aussie Rules") return s.includes("afl") || s.includes("aussie");
+    if (filter === "Cricket") return s.includes("cricket") || s.includes("test match") || s.includes("t20") || s.includes("odi");
+    if (filter === "Rugby") return s.includes("rugby");
+    if (filter === "Ice Hockey") return s.includes("ice hockey") || s.includes("nhl");
     
     return gameSport === filter; 
   };
