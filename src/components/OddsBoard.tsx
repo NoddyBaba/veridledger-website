@@ -47,10 +47,10 @@ function normalizeOdds(odds: number | string): number {
 function parseApiFootballEvent(eventRow: any): Game | null {
   const data = eventRow.odds_data;
   const bookmaker = data.bookmakers?.[0]; 
-  if (!bookmaker) return null;
+  if (!bookmaker || !bookmaker.bets) return null;
 
-  const matchWinner = bookmaker.markets.find((m: any) => m.id === 1 || m.name === "Match Winner");
-  const goalsOverUnder = bookmaker.markets.find((m: any) => m.id === 5 || m.name === "Goals Over/Under");
+  const matchWinner = bookmaker.bets.find((m: any) => m.id === 1 || m.name === "Match Winner");
+  const goalsOverUnder = bookmaker.bets.find((m: any) => m.id === 5 || m.name === "Goals Over/Under");
 
   const getVal = (market: any, valStr: string) => {
     const v = market?.values?.find((v: any) => v.value === valStr);
@@ -404,9 +404,9 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                 // API-FOOTBALL DEEP MARKETS
                 (() => {
                   const bookmaker = selectedGame.rawOdds.bookmakers?.[0];
-                  if (!bookmaker) return <p className="text-muted-foreground text-sm">No markets available.</p>;
+                  if (!bookmaker || !bookmaker.bets) return <p className="text-muted-foreground text-sm">No markets available.</p>;
 
-                  return bookmaker.markets.map((market: any, idx: number) => {
+                  return bookmaker.bets.map((market: any, idx: number) => {
                     // Only show interesting markets
                     const hideMarkets = [1, 5]; // Hide 1X2 and main Over/Under as they are already on main screen
                     if (hideMarkets.includes(market.id)) return null;
