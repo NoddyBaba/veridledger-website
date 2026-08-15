@@ -63,8 +63,8 @@ export default function PickCard({ pick, profileMap }: { pick: any, profileMap: 
         {legs.map((leg: any, i: number) => (
           <div key={i} className="flex items-center justify-between gap-3 px-3 py-2 bg-surface-inset rounded-lg">
             <span className="text-[13px] font-semibold break-words">{leg.name}</span>
-            <span className="font-mono text-[12.5px] text-secondary flex-none tabular-nums">
-              {leg.odds > 0 && !String(leg.odds).startsWith('+') ? `+${leg.odds}` : leg.odds}
+            <span className="font-mono text-[13px] text-secondary tabular-nums flex-none">
+              {leg.odds ? (Number(leg.odds) > 0 && !String(leg.odds).startsWith('+') ? `+${Number(leg.odds).toFixed(2)}` : Number(leg.odds).toFixed(2)) : ''}
             </span>
           </div>
         ))}

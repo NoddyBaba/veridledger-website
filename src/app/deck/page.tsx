@@ -157,7 +157,7 @@ export default function DeckPage() {
                 key={tab}
                 onClick={() => setFilter(tab as any)}
                 className={`border-none bg-transparent font-sans text-[12px] font-bold tracking-widest px-3.5 py-1.5 rounded-full cursor-pointer transition-all ${
-                  filter === tab ? "bg-[#f2f2ee] text-[#1a1a1a]" : "text-secondary hover:text-foreground"
+                  filter === tab ? "bg-primary text-primary-foreground" : "text-secondary hover:text-foreground"
                 }`}
               >
                 {tab === "All" ? "All" : tab === "LOCKED" ? "Locked" : "Graded"}
@@ -205,7 +205,7 @@ export default function DeckPage() {
                     <div key={i} className="flex flex-col md:flex-row md:items-center justify-between gap-[3px] md:gap-3 p-[9px_12px] bg-surface-inset rounded-lg">
                       <span className="text-[13.5px] font-semibold text-foreground">{leg.name}</span>
                       <span className="font-mono text-[13px] text-secondary tabular-nums flex-none">
-                        {leg.odds > 0 && !String(leg.odds).startsWith('+') ? `+${leg.odds}` : leg.odds}
+                        {leg.odds ? (Number(leg.odds) > 0 && !String(leg.odds).startsWith('+') ? `+${Number(leg.odds).toFixed(2)}` : Number(leg.odds).toFixed(2)) : ''}
                       </span>
                     </div>
                   ))}
