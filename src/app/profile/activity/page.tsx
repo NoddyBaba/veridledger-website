@@ -9,9 +9,11 @@ import Link from "next/link";
 import dayjs from "dayjs";
 
 export default function ActivityLogPage() {
-  const { user, isLoading } = useAuth();
+  const { user, profile, isLoading } = useAuth();
   const router = useRouter();
   const [logs, setLogs] = useState<any[]>([]);
+  
+  const isAnalyst = profile?.role === "analyst";
   const [isFetching, setIsFetching] = useState(true);
 
   useEffect(() => {
@@ -19,6 +21,11 @@ export default function ActivityLogPage() {
       router.push("/auth");
     }
   }, [user, isLoading, router]);
+
+  const handleSignOut = async () => {
+    await supabase!.auth.signOut();
+    router.push("/");
+  };
 
   useEffect(() => {
     async function fetchLogs() {

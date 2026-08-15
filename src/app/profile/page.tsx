@@ -140,10 +140,12 @@ export default function ProfilePage() {
   if (isLoading || !profile) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="animate-spin text-primary" size={32} />
       </div>
     );
   }
+
+  const isAnalyst = profile.role === "analyst";
 
   return (
     <div className="min-h-screen bg-background pb-24">
