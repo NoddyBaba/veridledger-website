@@ -48,7 +48,7 @@ export default async function Home() {
   topCappers.forEach((capper, i) => capper.rank = i + 1);
 
   return (
-    <main className="relative bg-obsidian selection:bg-lime/30 text-ink overflow-hidden">
+    <main className="relative bg-obsidian selection:bg-lime/30 text-ink">
       <FloatingDecorations />
       <Navbar />
       <Hero />

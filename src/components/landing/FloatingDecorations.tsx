@@ -24,7 +24,7 @@ export default function FloatingDecorations() {
   const asteriskRotate = useTransform(scrollYProgress, [0, 1], [0, 360]);
 
   return (
-    <div ref={containerRef} className="pointer-events-none absolute inset-0 overflow-hidden z-0">
+    <div ref={containerRef} className="pointer-events-none fixed inset-0 overflow-hidden z-0">
       <motion.div
         className="fixed bottom-10 right-10 md:right-32 text-[120px] md:text-[240px] font-mono text-obsidian-line/40 select-none z-0 mix-blend-difference"
         style={{

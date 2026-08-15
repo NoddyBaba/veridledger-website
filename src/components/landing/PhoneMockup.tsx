@@ -85,36 +85,47 @@ function RoiScreen() {
 }
 
 function DashboardScreen() {
-  const alerts = [
-    { name: "@SharpVector", pick: "Published a new NBA signal", time: "now" },
-    { name: "@QuantEdgeNFL", pick: "Signal settled: WON", time: "6m" },
+  const posts = [
+    { analyst: "SharpVector", pick: "LAL -4.5", league: "NBA", tails: 142 },
+    { analyst: "QuantEdgeNFL", pick: "KC Chiefs ML", league: "NFL", tails: 89 },
   ];
   return (
     <div className="flex flex-col gap-2.5 px-4 pt-2">
       <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-slate">
         Live Feed
       </p>
-      {alerts.map((a) => (
+      {posts.map((p) => (
         <div
-          key={a.name + a.time}
-          className="flex items-start gap-3 rounded-xl border border-obsidian-line bg-obsidian-raised px-3.5 py-3"
+          key={p.analyst}
+          className="flex flex-col gap-3 rounded-xl border border-obsidian-line bg-obsidian-raised p-3.5"
         >
-          <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-steel/15 text-steel">
-            <Bell className="h-3.5 w-3.5" strokeWidth={2.5} />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-ink">{a.name}</p>
-            <p className="text-[11px] text-slate">{a.pick}</p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-6 w-6 rounded-full bg-steel/20" />
+              <span className="text-xs font-medium text-ink">@{p.analyst}</span>
+            </div>
+            <span className="font-mono text-[9px] text-slate">{p.league}</span>
           </div>
-          <span className="ml-auto shrink-0 font-mono text-[9px] text-slate">
-            {a.time}
-          </span>
+          
+          <div className="rounded-lg bg-obsidian p-2.5">
+            <span className="text-sm font-bold text-lime">{p.pick}</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 rounded bg-lime/10 px-2 py-1">
+              <span className="text-[10px]">🔥</span>
+              <span className="font-mono text-[9px] text-lime">TAIL {p.tails}</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded bg-red-500/10 px-2 py-1">
+              <span className="text-[10px]">👎</span>
+            </div>
+            <div className="ml-auto flex items-center gap-1.5 rounded bg-steel/10 px-2 py-1">
+              <Lock className="h-2.5 w-2.5 text-steel" />
+              <span className="font-mono text-[9px] text-steel">VIP</span>
+            </div>
+          </div>
         </div>
       ))}
-      <p className="mt-1 px-1 font-mono text-[9px] leading-relaxed text-slate">
-        Feed updates instantly when a signal is written to the ledger — not on a
-        delay, not after the line moves.
-      </p>
     </div>
   );
 }
@@ -139,8 +150,8 @@ export default function PhoneMockup({ active }: { active: Feature["mock"] }) {
           <StatusBar />
 
           <div className="flex items-center justify-between px-4 pb-3 pt-1">
-            <span className="font-mono text-[11px] font-medium text-ink">
-              VeridLedger
+            <span className="font-mono text-[11px] font-medium text-white tracking-widest">
+              VE<span className="text-lime">RID</span>
             </span>
             <span className="h-1.5 w-1.5 rounded-full bg-lime animate-pulse-dot" />
           </div>
