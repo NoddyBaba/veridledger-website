@@ -303,28 +303,20 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
           
           {/* More Sports Dropdown / Selector */}
           {otherSports.length > 0 && (
-            <div className="relative group flex items-center">
-              <div className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors cursor-pointer ${
+            <div className="relative flex items-center shrink-0">
+              <select 
+                value={isOtherSportSelected ? sportFilter : ""}
+                onChange={(e) => { setSportFilter(e.target.value); (document.activeElement as HTMLElement)?.blur(); }}
+                className={`appearance-none outline-none flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors cursor-pointer pr-8 ${
                   isOtherSportSelected ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-muted/50"
                 }`}
               >
-                {isOtherSportSelected ? sportFilter : "More"}
-                <ChevronDown size={14} className="opacity-70" />
-              </div>
-              {/* Dropdown menu */}
-              <div className="absolute top-full right-0 mt-2 w-48 bg-card border border-border rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 py-1">
+                <option value="" disabled hidden>More</option>
                 {otherSports.map(sport => (
-                  <button
-                    key={sport}
-                    onClick={() => { setSportFilter(sport); (document.activeElement as HTMLElement)?.blur(); }}
-                    className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-muted/50 ${
-                      sportFilter === sport ? "text-primary font-bold bg-primary/10" : "text-muted-foreground"
-                    }`}
-                  >
-                    {sport}
-                  </button>
+                  <option key={sport} value={sport} className="text-foreground bg-card">{sport}</option>
                 ))}
-              </div>
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-70" />
             </div>
           )}
         </div>

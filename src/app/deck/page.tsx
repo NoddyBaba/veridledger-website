@@ -123,7 +123,6 @@ export default function AnalystDeck() {
   const handleAddSelection = (selection: OddSelection) => {
     if (!selections.find(s => s.id === selection.id)) {
       setSelections([...selections, selection]);
-      setIsSlipDrawerOpen(true);
     }
   };
 
