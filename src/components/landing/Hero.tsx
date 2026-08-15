@@ -6,6 +6,7 @@ import { ArrowRight, X } from "lucide-react";
 import SignalTicker from "./SignalTicker";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 
 const container = {
   hidden: {},
@@ -21,15 +22,24 @@ const item = {
 
 export default function Hero() {
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
   const router = useRouter();
+
+  const handleLaunch = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsLaunching(true);
+    router.push("/auth");
+  };
 
   const handleApplyNext = () => {
     setIsApplyModalOpen(false);
+    setIsLaunching(true);
     router.push("/auth");
   };
 
   return (
     <>
+    {isLaunching && <CryptoEngineLoader fullScreen text="INITIALIZING..." />}
     <section id="top" className="relative overflow-hidden pt-16">
       {/* Ambient background: faint data grid + soft steel-blue glow, quiet by design */}
       <div className="pointer-events-none absolute inset-0 bg-grid-faint bg-grid [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black_40%,transparent_100%)]" />
@@ -71,13 +81,13 @@ export default function Hero() {
           variants={item}
           className="mt-10 flex w-full flex-col items-center gap-4 sm:w-auto sm:flex-row"
         >
-          <Link
-            href="/auth"
-            className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-lime px-7 py-3.5 text-sm font-semibold text-obsidian shadow-glow-lime-lg transition-transform hover:scale-[1.03] sm:w-auto"
+          <button
+            onClick={handleLaunch}
+            className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-lime px-7 py-3.5 text-sm font-semibold text-obsidian shadow-glow-lime-lg transition-transform hover:scale-[1.03] sm:w-auto cursor-pointer"
           >
             Launch Platform
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          </button>
           <button
             onClick={() => setIsApplyModalOpen(true)}
             className="inline-flex w-full items-center justify-center rounded-full border border-obsidian-line px-7 py-3.5 text-sm font-medium text-ink/80 transition-colors hover:border-ink/30 hover:text-ink sm:w-auto cursor-pointer"

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, Loader2, X, ChevronRight, ChevronDown } from "lucide-react";
+import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 import { supabase } from "@/lib/supabase";
 
 export type OddSelection = {
@@ -325,9 +326,8 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
       {/* Main Odds Area */}
       <div className="flex-1 overflow-y-auto bg-[#0a0a0a]">
         {isLoading && (
-          <div className="flex flex-col items-center justify-center p-12 space-y-4">
-            <Loader2 className="animate-spin text-primary" size={32} />
-            <p className="text-muted-foreground text-sm font-medium">Fetching Live Oracle Data...</p>
+          <div className="flex-1 flex flex-col items-center justify-center py-20">
+            <CryptoEngineLoader size="md" text="FETCHING LIVE ORACLE DATA..." />
           </div>
         )}
 

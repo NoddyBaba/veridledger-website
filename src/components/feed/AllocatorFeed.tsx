@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import FeedHeader from "./FeedHeader";
 import PickCard from "./PickCard";
 import { calculateAnalystStats } from "@/lib/stats";
+import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 
 export default function AllocatorFeed() {
   const { user } = useAuth();
@@ -76,7 +77,9 @@ export default function AllocatorFeed() {
         />
         
         {loading ? (
-          <div className="text-secondary text-sm">Loading market intelligence...</div>
+          <div className="py-20 flex justify-center">
+            <CryptoEngineLoader size="lg" text="SYNCING MARKETS..." />
+          </div>
         ) : (
           <div className="flex flex-col gap-3.5">
             {filteredPicks.map(pick => (

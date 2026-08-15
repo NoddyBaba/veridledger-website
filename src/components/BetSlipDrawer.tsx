@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { X, Lock, Trash2, CheckCircle2 } from "lucide-react";
+import { Trash2, Lock, Loader2, X, CheckCircle2 } from 'lucide-react';
+import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 import { OddSelection } from "./OddsBoard";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
@@ -295,10 +296,16 @@ export default function BetSlipDrawer({
             <button 
               onClick={handleSubmit}
               disabled={isSubmitting || stake < 1}
-              className="w-full bg-primary text-primary-foreground font-bold py-3.5 px-4 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-50"
+              className="w-full h-[52px] bg-primary text-primary-foreground font-bold px-4 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-50"
             >
-              <Lock size={18} />
-              {isSubmitting ? "Locking..." : "Publish Immutable Pick"}
+              {isSubmitting ? (
+                <CryptoEngineLoader size="sm" text="" />
+              ) : (
+                <>
+                  <Lock size={18} />
+                  Publish Immutable Pick
+                </>
+              )}
             </button>
             <p className="text-center text-[10px] text-muted-foreground mt-2">
               Cryptographically binds to ledger. Cannot be edited.
