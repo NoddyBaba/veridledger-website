@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Activity } from "lucide-react";
 import AllocatorFeed from "@/components/feed/AllocatorFeed";
 import AnalystFeed from "@/components/feed/AnalystFeed";
+import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
 
 export default function FeedPageRouter() {
   const { user, profile, isLoading } = useAuth();
@@ -19,9 +20,18 @@ export default function FeedPageRouter() {
 
   // If user is not logged in or role is missing, fallback to AllocatorFeed 
   // (though protected routes should handle this, it's good to have a default)
-  if (!user || !profile || profile.role !== "analyst") {
+  if (!user || !profile) {
     return <AllocatorFeed />;
   }
 
-  return <AnalystFeed />;
+  const needsOnboarding = profile.betting_persona == null;
+
+  return (
+    <>
+      {needsOnboarding && (
+        <OnboardingWizard onComplete={() => window.location.reload()} />
+      )}
+      {profile.role === "analyst" ? <AnalystFeed /> : <AllocatorFeed />}
+    </>
+  );
 }

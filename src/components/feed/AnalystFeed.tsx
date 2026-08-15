@@ -7,6 +7,7 @@ import { Activity, Lock, Unlock, TrendingUp, Users, Target, CheckCircle2, Shield
 import Link from "next/link";
 import FeedSearch from "./FeedSearch";
 import { calculateAnalystStats } from "@/lib/stats";
+import ReactionActionBar from "./ReactionActionBar";
 
 type PickWithAnalyst = {
   id: string;
@@ -206,10 +207,12 @@ export default function AnalystFeed() {
                   <h3 className="text-base font-bold text-foreground truncate">{pick.match_title}</h3>
                   <div className="flex items-center gap-2 text-sm font-medium">
                     <span className="text-secondary">{pick.selection}</span>
-                    <span className="text-muted-foreground">•</span>
+                    <span className="text-muted-foreground">@</span>
                     <span className="text-foreground">{pick.odds > 0 ? `+${pick.odds}` : pick.odds}</span>
                   </div>
                 </div>
+
+                <ReactionActionBar pickId={pick.id} hasAccess={true} />
               </div>
             ))
           )}
@@ -284,6 +287,8 @@ export default function AnalystFeed() {
                     <span className="text-foreground">{pick.odds > 0 ? `+${pick.odds}` : pick.odds}</span>
                   </div>
                 </div>
+
+                <ReactionActionBar pickId={pick.id} hasAccess={!isBlurred} />
               </div>
             );
           })

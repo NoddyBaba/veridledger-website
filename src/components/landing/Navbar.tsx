@@ -52,7 +52,7 @@ export default function Navbar() {
               <VeridLogo className="h-5 w-5 fill-current" />
             </span>
             <span className="font-mono text-sm font-bold tracking-tight text-ink">
-              VERID<span className="text-lime">LEDGER</span>
+              VE<span className="text-lime">RID</span>
             </span>
           </a>
 

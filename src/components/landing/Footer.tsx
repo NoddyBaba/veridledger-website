@@ -35,7 +35,7 @@ export default function Footer() {
             <h2 className="max-w-xl text-display-2 font-semibold text-ink">
               Elevate Your Allocation.
               <br />
-              Join VeridLedger.
+              Join Ve<span className="text-lime">rid</span>.
             </h2>
             <Link
               href="/auth"
@@ -53,7 +53,7 @@ export default function Footer() {
                   <VeridLogo className="h-5 w-5 fill-current" />
                 </span>
                 <span className="font-mono text-sm font-medium text-ink">
-                  VeridLedger
+                  VE<span className="text-lime">RID</span>
                 </span>
               </div>
               <p className="mt-4 max-w-[22ch] text-sm text-slate">

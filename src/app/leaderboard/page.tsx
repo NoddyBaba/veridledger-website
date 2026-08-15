@@ -43,6 +43,7 @@ export default async function LeaderboardPage() {
       winRate: stats.winRate,
       roi: stats.roi,
       yield: stats.netUnits,
+      averageOdds: stats.averageOdds,
       trend: stats.trend
     };
   });

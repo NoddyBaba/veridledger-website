@@ -15,6 +15,7 @@ export type CapperData = {
   roi: number;
   yield: number;
   winRate: number;
+  averageOdds: number;
   trend: number[];
 };
 
@@ -215,6 +216,9 @@ export default function DiscoveryLeaderboard({ analysts }: { analysts: CapperDat
               <th className="px-3 py-3 text-right text-xs font-medium uppercase tracking-widest text-muted-foreground">
                 Win Rate
               </th>
+              <th className="hidden px-3 py-3 text-right text-xs font-medium uppercase tracking-widest text-muted-foreground sm:table-cell">
+                Avg. Odds
+              </th>
               <th className="hidden px-3 py-3 text-xs font-medium uppercase tracking-widest text-muted-foreground md:table-cell">
                 30-Day Equity Curve
               </th>
@@ -308,6 +312,12 @@ export default function DiscoveryLeaderboard({ analysts }: { analysts: CapperDat
 
                     <td className="px-3 py-4 text-right">
                       <WinRateBar value={a.winRate} />
+                    </td>
+
+                    <td className="hidden px-3 py-4 text-right sm:table-cell">
+                      <span className="text-sm font-mono text-muted-foreground">
+                        {a.averageOdds ? a.averageOdds.toFixed(2) : "-"}
+                      </span>
                     </td>
 
                     <td className="hidden px-3 py-4 md:table-cell">

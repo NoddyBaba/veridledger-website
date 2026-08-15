@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VeridLedger - Institutional Sports Data",
+  title: "Verid - Institutional Sports Data",
   description: "A mobile-first, institutional-grade sports data marketplace and tipster verification platform.",
 };
 

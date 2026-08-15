@@ -11,6 +11,8 @@ type Profile = {
   avatar_url?: string;
   bio?: string;
   is_admin?: boolean;
+  betting_persona?: string | null;
+  favorite_sports?: string[];
 };
 
 type AuthContextType = {
