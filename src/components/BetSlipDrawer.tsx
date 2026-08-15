@@ -23,7 +23,7 @@ export default function BetSlipDrawer({
 }) {
   const { user, profile } = useAuth();
   
-  const [stake, setStake] = useState(100);
+  const [stake, setStake] = useState(1);
   const [thesis, setThesis] = useState("");
   const [isPremium, setIsPremium] = useState(true);
 
@@ -70,7 +70,7 @@ export default function BetSlipDrawer({
       const isParlay = selections.length > 1;
       const title = isParlay ? `${selections.length}-Leg Parlay` : selections[0].matchTitle;
       const selectionText = isParlay 
-        ? selections.map(s => `${s.selectionName} (${s.odds > 0 ? '+'+s.odds : s.odds})`).join(' + ')
+        ? selections.map(s => `${s.selectionName} (${s.odds.toFixed(2)})`).join(' + ')
         : `${selections[0].selectionName} (${displayOdds})`;
       
       const sport = isParlay ? "Mixed" : selections[0].sport;
@@ -100,7 +100,7 @@ export default function BetSlipDrawer({
         setSuccess(false);
         setIsSubmitting(false);
         setThesis("");
-        setStake(100);
+        setStake(1);
       }, 2000);
       
     } catch (err: any) {
@@ -214,8 +214,8 @@ export default function BetSlipDrawer({
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">U</span>
                   <input 
                     type="number"
-                    min="100"
-                    step="100"
+                    min="1"
+                    step="1"
                     value={stake}
                     onChange={(e) => setStake(parseInt(e.target.value) || 0)}
                     className="w-full bg-background border border-border rounded-md py-2.5 pl-8 pr-3 text-foreground font-bold focus:outline-none focus:border-primary"
@@ -224,7 +224,7 @@ export default function BetSlipDrawer({
 
                 {/* Quick Chips */}
                 <div className="flex gap-2">
-                  {[100, 500, 1000, 5000].map(amt => (
+                  {[1, 2, 5, 10].map(amt => (
                     <button 
                       key={amt}
                       type="button"
@@ -294,7 +294,7 @@ export default function BetSlipDrawer({
             </div>
             <button 
               onClick={handleSubmit}
-              disabled={isSubmitting || stake < 100}
+              disabled={isSubmitting || stake < 1}
               className="w-full bg-primary text-primary-foreground font-bold py-3.5 px-4 rounded-md hover:bg-primary/90 transition-colors flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(204,255,0,0.2)] disabled:opacity-50"
             >
               <Lock size={18} />

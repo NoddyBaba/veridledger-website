@@ -334,8 +334,8 @@ export default function CapperProfile({ params }: { params: Promise<{ username: 
                           </div>
                         ) : (
                           <div className="mt-2 flex justify-between items-center p-4 rounded-xl border border-white/5 bg-black/20 group-hover:border-primary/20 transition-colors">
-                            <div className="space-y-1">
-                              <div className="text-base font-bold text-foreground">{pick.selection}</div>
+                            <div className="space-y-1 flex-1 min-w-0 pr-4">
+                              <div className="text-base font-bold text-foreground break-words line-clamp-3">{pick.selection}</div>
                               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{pick.stake}U Stake</div>
                             </div>
                             <div className="flex flex-col items-end gap-2">
