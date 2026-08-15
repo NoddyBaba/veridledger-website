@@ -40,10 +40,10 @@ export const features: Feature[] = [
   },
   {
     id: "allocator-dashboard",
-    eyebrow: "[ ALERTS ]",
-    title: "The Allocator Dashboard",
+    eyebrow: "[ SOCIAL INTELLIGENCE ]",
+    title: "Real-Time Ledger",
     description:
-      "Receive instant notifications the second a signal is published.",
+      "A real-time, chronological feed of verified signals, complete with tail tracking and VIP discussion rooms.",
     mock: "dashboard",
   },
 ];

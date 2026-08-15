@@ -92,7 +92,7 @@ function DashboardScreen() {
   return (
     <div className="flex flex-col gap-2.5 px-4 pt-2">
       <p className="mb-1 font-mono text-[10px] uppercase tracking-wider text-slate">
-        Allocator Dashboard
+        Live Feed
       </p>
       {alerts.map((a) => (
         <div
@@ -112,7 +112,7 @@ function DashboardScreen() {
         </div>
       ))}
       <p className="mt-1 px-1 font-mono text-[9px] leading-relaxed text-slate">
-        Alerts fire the instant a signal is written to the ledger — not on a
+        Feed updates instantly when a signal is written to the ledger — not on a
         delay, not after the line moves.
       </p>
     </div>

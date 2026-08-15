@@ -15,7 +15,7 @@ function FeatureBlock({
   const ref = useRef<HTMLDivElement>(null);
   // Treat the middle band of the viewport as the "in focus" zone, so the
   // phone switches right as a block takes over the center of the screen.
-  const inView = useInView(ref, { margin: "-45% 0px -45% 0px" });
+  const inView = useInView(ref, { amount: 0.5 });
 
   useEffect(() => {
     if (inView) setActive(feature.mock);

@@ -33,7 +33,7 @@ export default function FloatingDecorations() {
           rotate: bracketRotate,
         }}
       >
-        {"}"}
+        {"+"}
       </motion.div>
 
       <motion.div
