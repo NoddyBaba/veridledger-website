@@ -388,7 +388,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                 <OddsCell 
                   price={game.markets.ml.draw?.odds || 0} 
                   isActive={activeSelections.has(`${game.id}-ml-Draw`)}
-                  onClick={() => handleOddClick(game, 'ml', 'Draw', game.markets.ml.draw?.odds || 0, { team: \"Draw\", homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
+                  onClick={() => handleOddClick(game, 'ml', 'Draw', game.markets.ml.draw?.odds || 0, { team: 'Draw', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
                 />
               </div>
               <OddsCell 
@@ -399,12 +399,12 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
               <OddsCell 
                 price={game.markets.total.over.odds} 
                 isActive={activeSelections.has(`${game.id}-total-${game.markets.total.over.line}`)}
-                onClick={() => handleOddClick(game, 'total', game.markets.total.over.line || 'Over', game.markets.total.over.odds, { type: \"over\", homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name, line: parseFloat(game.markets.total.over.line.replace(/[^0-9.]/g, \"\")) || 2.5 })}
+                onClick={() => handleOddClick(game, 'total', game.markets.total.over.line || 'Over', game.markets.total.over.odds, { type: 'over', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name, line: parseFloat(game.markets.total.over.line.replace(/[^0-9.]/g, \"\")) || 2.5 })}
               />
               <OddsCell 
                 price={game.markets.total.under.odds} 
                 isActive={activeSelections.has(`${game.id}-total-${game.markets.total.under.line}`)}
-                onClick={() => handleOddClick(game, 'total', game.markets.total.under.line || 'Under', game.markets.total.under.odds, { type: \"under\", homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name, line: parseFloat(game.markets.total.under.line.replace(/[^0-9.]/g, \"\")) || 2.5 })}
+                onClick={() => handleOddClick(game, 'total', game.markets.total.under.line || 'Under', game.markets.total.under.odds, { type: 'under', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name, line: parseFloat(game.markets.total.under.line.replace(/[^0-9.]/g, \"\")) || 2.5 })}
               />
 
               <div className="flex items-center justify-center">
