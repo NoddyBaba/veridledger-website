@@ -1,4 +1,5 @@
-"use client";
+﻿const fs = require('fs');
+const content = "use client";
 
 import { useState, useEffect } from "react";
 import { Search, Loader2, X, ChevronRight, ChevronDown } from "lucide-react";
@@ -65,7 +66,7 @@ function parseApiFootballEvent(eventRow: any): Game | null {
     id: eventRow.id,
     sport: 'Football',
     competition: data.league_name || "Football",
-    title: `${eventRow.home_team} vs ${eventRow.away_team}`,
+    title: \\ vs \\,
     startTime: eventRow.commence_time,
     isSoccer: true,
     rawOdds: data,
@@ -117,7 +118,7 @@ function parseTheOddsApiEvent(eventRow: any): Game | null {
     id: eventRow.id,
     sport: sportName,
     competition: competition,
-    title: `${data.home_team} vs ${data.away_team}`,
+    title: \\ vs \\,
     startTime: data.commence_time,
     isSoccer,
     rawOdds: data,
@@ -128,8 +129,8 @@ function parseTheOddsApiEvent(eventRow: any): Game | null {
         ...(isSoccer ? { draw: { name: 'Draw', odds: normalizeOdds(drawH2H.price) } } : {})
       },
       total: {
-        over: { line: overTotal.point ? `O ${overTotal.point}` : '', odds: normalizeOdds(overTotal.price) },
-        under: { line: underTotal.point ? `U ${underTotal.point}` : '', odds: normalizeOdds(underTotal.price) }
+        over: { line: overTotal.point ? \O \\ : '', odds: normalizeOdds(overTotal.price) },
+        under: { line: underTotal.point ? \U \\ : '', odds: normalizeOdds(underTotal.price) }
       }
     }
   };
@@ -146,7 +147,7 @@ const OddsCell = ({ price, onClick, isActive }: { price: number, onClick?: () =>
   return (
     <button 
       onClick={onClick}
-      className={`flex items-center justify-center h-10 w-full rounded border transition-colors cursor-pointer group ${isActive ? 'bg-primary border-primary text-primary-foreground' : 'border-border bg-muted/20 hover:border-primary/50 hover:bg-primary/10 focus:ring-2 focus:ring-primary'}`}
+      className={\lex items-center justify-center h-10 w-full rounded border transition-colors cursor-pointer group \\}
     >
       <span className="text-[12px] font-bold font-mono">{price.toFixed(2)}</span>
     </button>
@@ -232,7 +233,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
   const handleOddClick = (game: Game, type: OddSelection['type'], selectionName: string, odds: number, metadata: any) => {
     if (odds === 0) return;
     
-    const uniqueId = `${game.id}-${type}-${selectionName.replace(/\s+/g, '')}`;
+    const uniqueId = \\-\-\\;
     
     const newActive = new Set(activeSelections);
     if (newActive.has(uniqueId)) newActive.delete(uniqueId);
@@ -268,7 +269,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
           <input 
             type="text" 
-            placeholder="Search matches or leagues..." 
+            placeholder="Search events, leagues..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-muted/40 border border-border rounded-full pl-9 pr-8 py-2 text-sm focus:outline-none focus:border-primary focus:bg-muted/80 transition-colors"
@@ -280,12 +281,10 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
           )}
         </div>
         
-        <div className="flex gap-1.5 w-full xl:w-auto overflow-x-auto pb-1 xl:pb-0 bg-muted/30 p-1 rounded-full border border-border [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <div className="flex flex-wrap gap-1.5 w-full bg-muted/30 p-1 rounded-xl lg:rounded-full border border-border">
           <button
             onClick={() => setSportFilter("All")}
-            className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-              sportFilter === "All" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={\px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors \\}
           >
             All
           </button>
@@ -293,9 +292,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
             <button
               key={sport}
               onClick={() => setSportFilter(sport)}
-              className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                sportFilter === sport ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={\whitespace-nowrap px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors \\}
             >
               {sport}
             </button>
@@ -304,9 +301,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
           {/* More Sports Dropdown / Selector */}
           {otherSports.length > 0 && (
             <div className="relative group flex items-center">
-              <div className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors cursor-pointer ${
-                  isOtherSportSelected ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-muted/50"
-                }`}
+              <div className={\lex items-center gap-1 px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors cursor-pointer \\}
               >
                 {isOtherSportSelected ? sportFilter : "More"}
                 <ChevronDown size={14} className="opacity-70" />
@@ -316,10 +311,8 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                 {otherSports.map(sport => (
                   <button
                     key={sport}
-                    onClick={() => { setSportFilter(sport); (document.activeElement as HTMLElement)?.blur(); }}
-                    className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-muted/50 ${
-                      sportFilter === sport ? "text-primary font-bold bg-primary/10" : "text-muted-foreground"
-                    }`}
+                    onClick={() => setSportFilter(sport)}
+                    className={\w-full text-left px-4 py-2 text-sm transition-colors hover:bg-muted/50 \\}
                   >
                     {sport}
                   </button>
@@ -360,7 +353,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
         {!isLoading && filteredGames.map(game => {
           const isLive = new Date(game.startTime).getTime() < Date.now();
           const d = new Date(game.startTime);
-          const timeStr = `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+          const timeStr = \\/\ \:\\;
           const disableDraw = !game.isSoccer && !game.markets.ml.draw;
 
           return (
@@ -379,7 +372,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                     <span className="text-[10px] text-muted-foreground font-mono">{timeStr}</span>
                   )}
                   {/* Clean Competition Badge */}
-                  <span className="text-[9px] text-primary/90 bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded uppercase truncate max-w-[150px] font-semibold">{game.competition}</span>
+                  <span className="text-[9px] text-primary/80 bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded uppercase truncate max-w-[120px] font-semibold">{game.competition}</span>
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[13px] font-semibold truncate text-foreground/90">{game.markets.ml.home.name}</span>
@@ -389,29 +382,29 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
 
               <OddsCell 
                 price={game.markets.ml.home.odds} 
-                isActive={activeSelections.has(`${game.id}-ml-${game.markets.ml.home.name}Winner`)}
-                onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.home.name} Winner`, game.markets.ml.home.odds, { team: game.markets.ml.home.name })}
+                isActive={activeSelections.has(\\-ml-\Winner\)}
+                onClick={() => handleOddClick(game, 'ml', \\ Winner\, game.markets.ml.home.odds, { team: game.markets.ml.home.name })}
               />
               <div className={disableDraw ? "opacity-30 pointer-events-none" : ""}>
                 <OddsCell 
                   price={game.markets.ml.draw?.odds || 0} 
-                  isActive={activeSelections.has(`${game.id}-ml-Draw`)}
+                  isActive={activeSelections.has(\\-ml-Draw\)}
                   onClick={() => handleOddClick(game, 'ml', 'Draw', game.markets.ml.draw?.odds || 0, { team: 'Draw' })}
                 />
               </div>
               <OddsCell 
                 price={game.markets.ml.away.odds} 
-                isActive={activeSelections.has(`${game.id}-ml-${game.markets.ml.away.name}Winner`)}
-                onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.away.name} Winner`, game.markets.ml.away.odds, { team: game.markets.ml.away.name })}
+                isActive={activeSelections.has(\\-ml-\Winner\)}
+                onClick={() => handleOddClick(game, 'ml', \\ Winner\, game.markets.ml.away.odds, { team: game.markets.ml.away.name })}
               />
               <OddsCell 
                 price={game.markets.total.over.odds} 
-                isActive={activeSelections.has(`${game.id}-total-${game.markets.total.over.line}`)}
+                isActive={activeSelections.has(\\-total-\\)}
                 onClick={() => handleOddClick(game, 'total', game.markets.total.over.line || 'Over', game.markets.total.over.odds, { type: 'over' })}
               />
               <OddsCell 
                 price={game.markets.total.under.odds} 
-                isActive={activeSelections.has(`${game.id}-total-${game.markets.total.under.line}`)}
+                isActive={activeSelections.has(\\-total-\\)}
                 onClick={() => handleOddClick(game, 'total', game.markets.total.under.line || 'Under', game.markets.total.under.odds, { type: 'under' })}
               />
 
@@ -470,14 +463,12 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                         <div className="grid grid-cols-2 gap-[1px] bg-border p-[1px]">
                           {market.values.map((v: any, vIdx: number) => {
                             const oddsVal = normalizeOdds(v.odd);
-                            const uId = `${selectedGame.id}-prop-${market.name}-${v.value}`;
+                            const uId = \\-prop-\-\\;
                             return (
                               <button
                                 key={vIdx}
-                                onClick={() => handleOddClick(selectedGame, 'prop', `${market.name}: ${v.value}`, oddsVal, {})}
-                                className={`flex items-center justify-between px-3 py-2.5 text-sm transition-colors ${
-                                  activeSelections.has(uId) ? 'bg-primary text-primary-foreground font-bold' : 'bg-card hover:bg-muted/50'
-                                }`}
+                                onClick={() => handleOddClick(selectedGame, 'prop', \\: \\, oddsVal, {})}
+                                className={\lex items-center justify-between px-3 py-2.5 text-sm transition-colors \\}
                               >
                                 <span className={activeSelections.has(uId) ? "text-primary-foreground" : "text-muted-foreground"}>{v.value}</span>
                                 <span className="font-mono font-bold">{oddsVal.toFixed(2)}</span>
@@ -504,16 +495,14 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
                         <div className="grid grid-cols-2 gap-[1px] bg-border p-[1px]">
                           {market.outcomes.map((o: any, oIdx: number) => {
                             const oddsVal = normalizeOdds(o.price);
-                            const uId = `${selectedGame.id}-prop-${market.key}-${o.name}`;
+                            const uId = \\-prop-\-\\;
                             return (
                               <button
                                 key={oIdx}
-                                onClick={() => handleOddClick(selectedGame, 'prop', `${market.key}: ${o.name} ${o.point ? o.point : ''}`, oddsVal, {})}
-                                className={`flex flex-col items-center justify-center px-2 py-3 text-sm transition-colors ${
-                                  activeSelections.has(uId) ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted/50'
-                                }`}
+                                onClick={() => handleOddClick(selectedGame, 'prop', \\: \ \\, oddsVal, {})}
+                                className={\lex flex-col items-center justify-center px-2 py-3 text-sm transition-colors \\}
                               >
-                                <span className={`text-xs mb-1 ${activeSelections.has(uId) ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{o.name} {o.point ? (o.point > 0 ? `+${o.point}` : o.point) : ''}</span>
+                                <span className={\	ext-xs mb-1 \\}>{o.name} {o.point ? (o.point > 0 ? \+\\ : o.point) : ''}</span>
                                 <span className="font-mono font-bold">{oddsVal.toFixed(2)}</span>
                               </button>
                             );
@@ -531,3 +520,5 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
     </div>
   );
 }
+;
+fs.writeFileSync('C:/Users/HP/Documents/veridledger/src/components/OddsBoard.tsx', content, 'utf8');
