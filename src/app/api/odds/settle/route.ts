@@ -58,7 +58,7 @@ export async function GET() {
         const data = await response.json();
         const fixtures = data.response || [];
 
-        for (const pick of picks) {
+        for (const pick of (picks as any[])) {
           if (!pick.selection_metadata) continue;
           const meta = pick.selection_metadata;
           const titleParts = pick.match_title.split(' vs ');
