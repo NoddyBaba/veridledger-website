@@ -64,6 +64,7 @@ export default async function LeaderboardPage() {
 
       <DiscoveryLeaderboard analysts={topCappers} />
 
+      <BottomNav />
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import BottomNav from '@/components/BottomNav';
 import { supabase } from "@/lib/supabase";
 import { Shield, Check, X, Minus, Activity, Clock, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -177,6 +178,7 @@ export default function OraclePage() {
           ))}
         </div>
       )}
+      <BottomNav />
     </div>
   );
 }

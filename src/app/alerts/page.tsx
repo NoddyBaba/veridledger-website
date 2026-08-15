@@ -1,5 +1,6 @@
 "use client";
 
+import BottomNav from '@/components/BottomNav';
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";

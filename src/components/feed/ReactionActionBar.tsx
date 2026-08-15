@@ -1,168 +1,100 @@
 "use client";
-
 import { useState, useEffect } from "react";
-import { MessageSquare, Flame, ThumbsDown, Lock } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
+import { createClient } from "@supabase/supabase-js";
 
-export default function ReactionActionBar({ 
-  pickId, 
-  hasAccess 
-}: { 
-  pickId: string, 
-  hasAccess: boolean 
-}) {
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default function ReactionActionBar({ pick }: { pick: any }) {
   const { user } = useAuth();
-  const [reaction, setReaction] = useState<"tail" | "fade" | null>(null);
-  const [tailCount, setTailCount] = useState(0);
-  const [fadeCount, setFadeCount] = useState(0);
-  const [showComments, setShowComments] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-  
+  const [totals, setTotals] = useState({ tail: 0, fade: 0 });
+  const [userReaction, setUserReaction] = useState<'tail' | 'fade' | null>(null);
+
   useEffect(() => {
     async function fetchReactions() {
-      // Fetch all reactions for this pick to count them
-      const { data: reactionsData } = await supabase!
+      const { data, error } = await supabase
         .from('pick_reactions')
         .select('reaction_type, user_id')
-        .eq('pick_id', pickId);
-        
-      if (reactionsData) {
-        setTailCount(reactionsData.filter(r => r.reaction_type === 'tail').length);
-        setFadeCount(reactionsData.filter(r => r.reaction_type === 'fade').length);
-        
-        // Set user's own reaction if logged in
-        if (user) {
-          const userReaction = reactionsData.find(r => r.user_id === user.id);
-          if (userReaction) {
-            setReaction(userReaction.reaction_type as "tail" | "fade");
-          }
-        }
-      }
-      setIsLoaded(true);
-    }
-    
-    fetchReactions();
-  }, [pickId, user]);
-
-  const handleReact = async (type: "tail" | "fade") => {
-    if (!user) {
-      alert("Please log in to react.");
-      return;
-    }
-
-    const previousReaction = reaction;
-    
-    // Optimistic UI updates
-    if (previousReaction === type) {
-      // Un-clicking the same reaction
-      setReaction(null);
-      if (type === 'tail') setTailCount(prev => prev - 1);
-      if (type === 'fade') setFadeCount(prev => prev - 1);
+        .eq('pick_id', pick.id);
       
-      // DB Delete
-      await supabase!
+      if (error || !data) return;
+
+      let tailCount = 0;
+      let fadeCount = 0;
+      let uReact = null;
+
+      data.forEach(r => {
+        if (r.reaction_type === 'tail') tailCount++;
+        if (r.reaction_type === 'fade') fadeCount++;
+        if (user && r.user_id === user.id) uReact = r.reaction_type;
+      });
+
+      setTotals({ tail: tailCount, fade: fadeCount });
+      setUserReaction(uReact);
+    }
+    fetchReactions();
+  }, [pick.id, user]);
+
+  const handleReact = async (type: 'tail' | 'fade') => {
+    if (!user) return;
+    
+    const isRemoving = userReaction === type;
+    const newReaction = isRemoving ? null : type;
+    
+    // Optimistic UI
+    setUserReaction(newReaction);
+    setTotals(prev => {
+      const next = { ...prev };
+      if (userReaction) next[userReaction]--;
+      if (newReaction) next[newReaction]++;
+      return next;
+    });
+
+    if (isRemoving) {
+      await supabase
         .from('pick_reactions')
         .delete()
-        .eq('pick_id', pickId)
-        .eq('user_id', user.id);
+        .match({ pick_id: pick.id, user_id: user.id });
     } else {
-      // New click or switching reaction
-      setReaction(type);
-      
-      if (type === 'tail') {
-        setTailCount(prev => prev + 1);
-        if (previousReaction === 'fade') setFadeCount(prev => Math.max(0, prev - 1));
-      } else {
-        setFadeCount(prev => prev + 1);
-        if (previousReaction === 'tail') setTailCount(prev => Math.max(0, prev - 1));
-      }
-      
-      // DB Upsert
-      await supabase!
+      await supabase
         .from('pick_reactions')
-        .upsert({
-          pick_id: pickId,
-          user_id: user.id,
-          reaction_type: type
-        }, {
-          onConflict: 'pick_id,user_id'
-        });
+        .upsert({ pick_id: pick.id, user_id: user.id, reaction_type: type }, { onConflict: 'pick_id,user_id' });
     }
   };
 
   return (
-    <div className="mt-4 pt-3 border-t border-border">
-      <div className="flex items-center justify-between">
-        
-        {/* Reactions */}
-        <div className="flex items-center gap-1 opacity-100 transition-opacity" style={{ opacity: isLoaded ? 1 : 0.5 }}>
-          <button 
-            onClick={() => handleReact("tail")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-              reaction === "tail" 
-                ? "bg-orange-500/20 text-orange-500 border border-orange-500/30 shadow-[0_0_10px_rgba(249,115,22,0.2)]" 
-                : "text-muted-foreground hover:bg-white/5 hover:text-foreground border border-transparent"
-            }`}
-          >
-            <Flame size={14} className={reaction === "tail" ? "fill-orange-500" : ""} />
-            Tail {tailCount > 0 && <span className="opacity-70 font-mono">({tailCount})</span>}
-          </button>
-          
-          <button 
-            onClick={() => handleReact("fade")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-              reaction === "fade" 
-                ? "bg-red-500/20 text-red-500 border border-red-500/30 shadow-[0_0_10px_rgba(239,68,68,0.2)]" 
-                : "text-muted-foreground hover:bg-white/5 hover:text-foreground border border-transparent"
-            }`}
-          >
-            <ThumbsDown size={14} className={reaction === "fade" ? "fill-red-500" : ""} />
-            Fade {fadeCount > 0 && <span className="opacity-70 font-mono">({fadeCount})</span>}
-          </button>
-        </div>
-
-        {/* Comments */}
+    <div className="flex items-center justify-between gap-2.5 mt-4 flex-wrap">
+      <div className="flex gap-2 w-full md:w-auto">
         <button 
-          onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-muted-foreground hover:bg-white/5 hover:text-foreground transition-colors"
+          onClick={() => handleReact('tail')}
+          className={`flex-1 md:flex-none inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-full border text-[12.5px] font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue ${
+            userReaction === 'tail' 
+              ? 'bg-orange-soft border-orange/40 text-orange' 
+              : 'bg-surface-inset border-border text-secondary hover:border-border-strong hover:text-foreground'
+          }`}
         >
-          <MessageSquare size={14} />
-          VIP Discussion
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          Tail <span className="font-mono">({totals.tail})</span>
+        </button>
+        <button 
+          onClick={() => handleReact('fade')}
+          className={`flex-1 md:flex-none inline-flex items-center justify-center gap-2 h-9 px-3.5 rounded-full border text-[12.5px] font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue ${
+            userReaction === 'fade' 
+              ? 'bg-blue-soft border-blue/40 text-blue' 
+              : 'bg-surface-inset border-border text-secondary hover:border-border-strong hover:text-foreground'
+          }`}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 14V2M17 14l-4.34 6.5a2 2 0 0 1-3.65-1.44L10 15H4a2 2 0 0 1-2-2.4l1.6-8A2 2 0 0 1 5.56 3H17"/></svg>
+          Fade <span className="font-mono">({totals.fade})</span>
         </button>
       </div>
-
-      {/* Expanded VIP Comments Section */}
-      {showComments && (
-        <div className="mt-4 pt-3 border-t border-border/50 animate-in fade-in slide-in-from-top-2 duration-200">
-          {!hasAccess ? (
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
-              <Lock size={20} className="text-primary mx-auto mb-2" />
-              <p className="text-sm font-bold text-foreground">VIP Room Locked</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                You must have an active subscription to this analyst to view and join the discussion for this premium pick.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="bg-card border border-border rounded-lg p-3 text-center text-sm text-muted-foreground">
-                <p>Welcome to the VIP Room. 🍸</p>
-                <p className="text-xs mt-1">Be the first to comment on this pick.</p>
-              </div>
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  placeholder="Discuss strategy..." 
-                  className="flex-1 bg-background border border-border rounded-full px-4 py-2 text-sm focus:outline-none focus:border-primary transition-colors"
-                />
-                <button className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-bold shadow-[0_0_10px_rgba(204,255,0,0.2)] hover:scale-105 transition-transform">
-                  Post
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      <button className="inline-flex items-center gap-1.5 bg-transparent border-none text-secondary font-semibold text-[12.5px] p-1.5 hover:text-foreground cursor-pointer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        VIP Discussion
+      </button>
     </div>
   );
 }

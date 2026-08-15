@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Users, DollarSign, TrendingUp, Target, Flame, Plus, Lock, X } from "lucide-react";
 import OddsBoard, { OddSelection } from "@/components/OddsBoard";
+import BottomNav from '@/components/BottomNav';
 import BetSlipDrawer from "@/components/BetSlipDrawer";
 import { useAuth } from "@/lib/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -314,6 +315,7 @@ export default function AnalystDeck() {
         </div>
       )}
 
+      <BottomNav />
     </div>
   );
 }

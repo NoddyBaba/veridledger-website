@@ -1,21 +1,25 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
-  --background: #1A1A1A; /* Matte Obsidian */
-  --foreground: #F2F2EE;
-  --card: #242424; /* Dark Charcoal */
+  --background: #1a1a1a;
+  --foreground: #ffffff;
+  --card: #242424;
   --card-hover: #292929;
+  --surface-inset: #1c1c1c;
   --border: rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.14);
-  --primary: #CCFF00; /* Electric Lime */
-  --primary-foreground: #000000;
+  --border-strong: rgba(255, 255, 255, 0.16);
+  --primary: #ccff00;
+  --primary-foreground: #10130a;
   --primary-soft: rgba(204, 255, 0, 0.12);
-  --negative: #FF6B6B;
-  --negative-soft: rgba(255, 107, 107, 0.12);
-  --secondary: #4A90E2; /* Steel Blue */
+  --secondary: #9a9a9a;
   --secondary-foreground: #ffffff;
-  --muted: #242424;
-  --muted-foreground: #707070;
+  --tertiary: #5c5c5c;
+  --blue: #4a90e2;
+  --blue-soft: rgba(74, 144, 226, 0.14);
+  --orange: #ff6900;
+  --orange-soft: rgba(255, 105, 0, 0.14);
+  --negative: #e5484d;
+  --negative-soft: rgba(229, 72, 77, 0.12);
 }
 
 @theme inline {
@@ -23,31 +27,38 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-hover: var(--card-hover);
+  --color-surface-inset: var(--surface-inset);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
+  
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-soft: var(--primary-soft);
+  
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-tertiary: var(--tertiary);
+  
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+  --color-orange: var(--orange);
+  --color-orange-soft: var(--orange-soft);
+  
   --color-negative: var(--negative);
   --color-negative-soft: var(--negative-soft);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --font-sans: var(--font-inter);
   
-  /* Landing Page Brand Colors */
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+  
+  /* Landing Page specific */
   --color-obsidian: #1A1A1A;
   --color-obsidian-raised: #212121;
   --color-obsidian-line: #2C2C2C;
   --color-ink: #F2F2F0;
   --color-slate: #707070;
   --color-lime: #CCFF00;
-  --color-lime-dim: #A8D400;
   --color-steel: #4A90E2;
-  --color-steel-dim: #3A6FA8;
 
-  /* Landing Page Font Sizes */
   --text-display-1: clamp(2.75rem, 6vw, 6.5rem);
   --text-display-1--line-height: 0.98;
   --text-display-1--letter-spacing: -0.03em;
@@ -56,18 +67,17 @@
   --text-display-2--line-height: 1.02;
   --text-display-2--letter-spacing: -0.02em;
 
-  /* Landing Page Shadows */
   --shadow-glow-lime: 0 0 24px 0 rgba(204, 255, 0, 0.35);
   --shadow-glow-lime-lg: 0 0 60px 0 rgba(204, 255, 0, 0.25);
   --shadow-glow-steel: 0 0 40px 0 rgba(74, 144, 226, 0.25);
 
-  /* Landing Page Backgrounds */
   --background-image-grid-faint: linear-gradient(to right, rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.035) 1px, transparent 1px);
   --background-size-grid: 44px 44px;
 
   /* Animations */
   --animate-marquee: marquee 32s linear infinite;
   --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+  --animate-pulse-cr: pulse-cr 1.8s infinite;
 }
 
 @keyframes marquee {
@@ -80,6 +90,12 @@
   50% { opacity: 0.35; }
 }
 
+@keyframes pulse-cr {
+  0% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0.5); }
+  70% { box-shadow: 0 0 0 6px rgba(204, 255, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(204, 255, 0, 0); }
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
@@ -87,3 +103,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Base custom scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
