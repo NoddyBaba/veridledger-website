@@ -22,7 +22,7 @@ export default function ReactionActionBar({
   useEffect(() => {
     async function fetchReactions() {
       // Fetch all reactions for this pick to count them
-      const { data: reactionsData } = await supabase
+      const { data: reactionsData } = await supabase!
         .from('pick_reactions')
         .select('reaction_type, user_id')
         .eq('pick_id', pickId);
@@ -61,7 +61,7 @@ export default function ReactionActionBar({
       if (type === 'fade') setFadeCount(prev => prev - 1);
       
       // DB Delete
-      await supabase
+      await supabase!
         .from('pick_reactions')
         .delete()
         .eq('pick_id', pickId)
@@ -79,7 +79,7 @@ export default function ReactionActionBar({
       }
       
       // DB Upsert
-      await supabase
+      await supabase!
         .from('pick_reactions')
         .upsert({
           pick_id: pickId,
