@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import BottomNav from "@/components/BottomNav";
 import { AuthProvider } from "@/lib/AuthContext";
 
 const inter = Inter({
@@ -29,7 +28,6 @@ export default function RootLayout({
           <div className="flex-1 w-full flex flex-col">
             {children}
           </div>
-          <BottomNav />
         </AuthProvider>
       </body>
     </html>
