@@ -338,7 +338,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
         )}
 
         {!isLoading && filteredGames.length > 0 && (
-          <div className="sticky top-0 z-10 grid grid-cols-[1fr_repeat(5,minmax(60px,70px))_30px] sm:grid-cols-[2fr_repeat(5,minmax(60px,80px))_40px] gap-1.5 items-center px-4 py-2 border-b border-border bg-card/95 backdrop-blur text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+          <div className="hidden sm:grid sticky top-0 z-10 grid-cols-[2fr_repeat(5,minmax(60px,80px))_40px] gap-1.5 items-center px-4 py-2 border-b border-border bg-card/95 backdrop-blur text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
             <div>Match</div>
             <div className="text-center">1</div>
             <div className="text-center">X</div>
@@ -356,9 +356,9 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
           const disableDraw = !game.isSoccer && !game.markets.ml.draw;
 
           return (
-            <div key={game.id} className="grid grid-cols-[1fr_repeat(5,minmax(60px,70px))_30px] sm:grid-cols-[2fr_repeat(5,minmax(60px,80px))_40px] gap-1.5 items-center px-4 py-3 border-b border-border hover:bg-muted/10 transition-colors group">
+            <div key={game.id} className="flex flex-col gap-2 sm:grid sm:grid-cols-[2fr_repeat(5,minmax(60px,80px))_40px] sm:gap-1.5 sm:items-center px-4 py-3 border-b border-border hover:bg-muted/10 transition-colors group">
               <div 
-                className="flex flex-col min-w-0 pr-2 cursor-pointer hover:opacity-80"
+                className="flex flex-col min-w-0 pr-2 cursor-pointer hover:opacity-80 mb-2 sm:mb-0"
                 onClick={() => setSelectedGame(game)}
               >
                 <div className="flex items-center gap-1.5 mb-1.5">

@@ -21,7 +21,7 @@ export default function BillingRouterPage() {
 
   const handleSignOut = async () => {
     await supabase!.auth.signOut();
-    router.push("/");
+    window.location.replace("/auth");
   };
 
   if (isLoading || !profile) {

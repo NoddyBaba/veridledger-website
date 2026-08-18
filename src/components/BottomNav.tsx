@@ -2,14 +2,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Trophy, Activity, SquareTerminal, Bell, UserCircle } from 'lucide-react';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { profile } = useAuth();
 
   const items = [
     { name: 'Leaderboard', href: '/leaderboard', icon: Trophy },
     { name: 'My Feed', href: '/feed', icon: Activity },
-    { name: 'Deck', href: '/deck', icon: SquareTerminal },
+    ...(profile?.role === 'analyst' ? [{ name: 'Deck', href: '/deck', icon: SquareTerminal }] : []),
     { name: 'Alerts', href: '/alerts', icon: Bell },
     { name: 'Account', href: '/profile', icon: UserCircle },
   ];

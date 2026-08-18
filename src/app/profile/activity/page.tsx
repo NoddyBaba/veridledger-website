@@ -24,7 +24,7 @@ export default function ActivityLogPage() {
 
   const handleSignOut = async () => {
     await supabase!.auth.signOut();
-    router.push("/");
+    window.location.replace("/auth");
   };
 
   useEffect(() => {

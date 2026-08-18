@@ -39,7 +39,7 @@ export default function ProfilePage() {
       await logActivity(user.id, 'LOGOUT');
     }
     await supabase!.auth.signOut();
-    router.push("/");
+    window.location.replace("/auth");
   };
 
   const handleSaveBio = async () => {
