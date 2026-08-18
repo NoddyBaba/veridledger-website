@@ -479,7 +479,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
       selectionName: chip.meta.selectionName,
       odds: chip.value,
       startTime: game.startTime,
-      metadata: { ...chip.meta, homeTeam: game.home.name, awayTeam: game.away.name, oddsApiSportKey: game.oddsApiSportKey }
+      metadata: { ...chip.meta, homeTeam: game.home.name, awayTeam: game.away.name, oddsApiSportKey: game.oddsApiSportKey, legOdds: chip.value }
     });
   };
 

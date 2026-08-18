@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase';
 export default function PickCard({ pick, profileMap }: { pick: any, profileMap: any }) {
   const { user, profile } = useAuth();
   const pickProfile = profileMap[pick.analyst_id] || { username: 'Unknown', win_rate: 0 };
-  const isParlay = pick.sport === 'Mixed';
+  const isAccumulator = pick.sport === 'Mixed';
   
   const [updateText, setUpdateText] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -26,7 +26,7 @@ export default function PickCard({ pick, profileMap }: { pick: any, profileMap: 
     switch(status) {
       case 'WIN': return <span className="inline-flex items-center gap-1.5 text-[10.5px] font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-primary-soft text-primary border border-primary/30"><Check className="w-3 h-3" /> WIN</span>;
       case 'LOSS': return <span className="inline-flex items-center gap-1.5 text-[10.5px] font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-negative-soft text-negative border border-negative/30"><X className="w-3 h-3" /> LOSS</span>;
-      case 'PUSH': return <span className="inline-flex items-center gap-1.5 text-[10.5px] font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-blue-soft text-blue border border-blue/30"><CircleMinus className="w-3 h-3" /> PUSH</span>;
+      case 'VOID': return <span className="inline-flex items-center gap-1.5 text-[10.5px] font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-blue-soft text-blue border border-blue/30"><CircleMinus className="w-3 h-3" /> PUSH</span>;
       default: return <span className="inline-flex items-center gap-1.5 text-[10.5px] font-extrabold tracking-widest px-2.5 py-1 rounded-full bg-primary-soft text-primary border border-primary/30">🔥 ACTIVE</span>;
     }
   };
@@ -191,10 +191,10 @@ export default function PickCard({ pick, profileMap }: { pick: any, profileMap: 
               className="flex-1 py-1.5 rounded bg-negative/10 text-negative border border-negative/30 text-xs font-bold hover:bg-negative/20 transition-colors disabled:opacity-50"
             >LOSS</button>
             <button 
-              onClick={() => handleForceGrade('PUSH')}
+              onClick={() => handleForceGrade('VOID')}
               disabled={isGrading}
               className="flex-1 py-1.5 rounded bg-blue/10 text-blue border border-blue/30 text-xs font-bold hover:bg-blue/20 transition-colors disabled:opacity-50"
-            >PUSH</button>
+            >VOID</button>
           </div>
         </div>
       )}

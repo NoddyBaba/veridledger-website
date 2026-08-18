@@ -32,7 +32,7 @@ export default function BetSlipDrawer({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const isParlay = selections.length > 1;
+  const isAccumulator = selections.length > 1;
 
   // Calculate combined odds (basic american odds math)
   const calculateCombinedOdds = () => {
@@ -67,15 +67,15 @@ export default function BetSlipDrawer({
     setError("");
 
     try {
-      // Create a single pick record (for parlay or single)
-      const isParlay = selections.length > 1;
-      const title = isParlay ? `${selections.length}-Leg Parlay` : selections[0].matchTitle;
-      const selectionText = isParlay 
+      // Create a single pick record (for accumulator or single)
+      const isAccumulator = selections.length > 1;
+      const title = isAccumulator ? `${selections.length}-Leg Accumulator` : selections[0].matchTitle;
+      const selectionText = isAccumulator 
         ? selections.map(s => `${s.selectionName} (${s.odds.toFixed(2)})`).join(' + ')
         : `${selections[0].selectionName} (${displayOdds})`;
       
-      const sport = isParlay ? "Mixed" : selections[0].sport;
-      // Use the earliest start time for a parlay
+      const sport = isAccumulator ? "Mixed" : selections[0].sport;
+      // Use the earliest start time for a accumulator
       const startTime = selections.sort((a,b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())[0].startTime;
 
       const { error: insertError } = await supabase!.from("picks").insert({
@@ -83,13 +83,13 @@ export default function BetSlipDrawer({
         sport: sport,
         match_title: title,
         selection: selectionText,
-        selection_metadata: isParlay ? selections.map(s => s.metadata) : selections[0].metadata,
+        selection_metadata: isAccumulator ? selections.map(s => s.metadata) : selections[0].metadata,
         odds: combinedOdds,
         stake: stake,
         status: "LOCKED",
         is_premium: isPremium,
         game_start_time: startTime,
-        // In a real schema, we'd also store the thesis and parlay legs individually
+        // In a real schema, we'd also store the thesis and accumulator legs individually
       });
 
       if (insertError) throw new Error(insertError.message);
@@ -170,7 +170,7 @@ export default function BetSlipDrawer({
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <h3 className="text-sm font-bold text-foreground">
-                  {isParlay ? `${selections.length}-Leg Parlay` : 'Single Bet'}
+                  {isAccumulator ? `${selections.length}-Leg Accumulator` : 'Single Bet'}
                 </h3>
                 <span className="text-lg font-black text-primary font-mono">{displayOdds}</span>
               </div>
