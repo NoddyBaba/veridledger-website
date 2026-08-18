@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Trash2, Lock, Loader2, X, CheckCircle2 } from 'lucide-react';
 import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 import { OddSelection } from "./OddsBoard";
@@ -110,11 +110,24 @@ export default function BetSlipDrawer({
     }
   };
 
+  useEffect(() => {
+    if (isOpen) {
+      window.history.pushState({ modalOpen: true }, '');
+      const handlePop = () => {
+        onClose();
+      };
+      window.addEventListener('popstate', handlePop);
+      return () => {
+        window.removeEventListener('popstate', handlePop);
+      };
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   if (success) {
     return (
-      <div className="fixed inset-y-0 right-0 w-full sm:w-[400px] z-50 bg-card border-l border-border shadow-2xl flex flex-col items-center justify-center p-8 animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-y-0 right-0 w-full sm:w-[400px] z-[150] bg-card border-l border-border shadow-2xl flex flex-col items-center justify-center p-8 animate-in slide-in-from-right duration-300">
         <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
           <CheckCircle2 size={32} />
         </div>
@@ -127,10 +140,10 @@ export default function BetSlipDrawer({
   return (
     <>
       {/* Backdrop for mobile */}
-      <div className="fixed inset-0 bg-black/50 z-40 sm:hidden backdrop-blur-sm" onClick={onClose} />
+      <div className="fixed inset-0 bg-black/50 z-[140] sm:hidden backdrop-blur-sm" onClick={onClose} />
       
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 w-full sm:w-[400px] z-50 bg-card border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right sm:slide-in-from-right duration-300">
+      <div className="fixed inset-y-0 right-0 w-full sm:w-[400px] z-[150] bg-card border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right sm:slide-in-from-right duration-300">
         
         {/* Header */}
         <div className="p-4 border-b border-border flex justify-between items-center bg-background/50">

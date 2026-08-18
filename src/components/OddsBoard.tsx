@@ -62,8 +62,7 @@ const getColor = (str: string) => {
 };
 
 function formatStartTime(dateStr: string) {
-  const d = new Date(dateStr);
-  return `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+  return dayjs(dateStr).format('MMM D, h:mm A');
 }
 
 function parseApiFootballEvent(eventRow: any): Game | null {
@@ -434,6 +433,20 @@ function LeagueGroup({ name, games, collapsed, onToggleCollapse, selections, onT
 
 
 function MatchDetailsDrawer({ game, selections, onToggle, onClose }: { game: Game | null, selections: Set<string>, onToggle: (g: Game, c: ChipData) => void, onClose: () => void }) {
+  useEffect(() => {
+    if (game) {
+      // Push a fake state so the back button can be intercepted
+      window.history.pushState({ modalOpen: true }, '');
+      const handlePop = () => {
+        onClose();
+      };
+      window.addEventListener('popstate', handlePop);
+      return () => {
+        window.removeEventListener('popstate', handlePop);
+      };
+    }
+  }, [game, onClose]);
+
   if (!game) return null;
 
   // Render all available markets from rawOdds
