@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search, Loader2, X, ChevronRight, ChevronDown, TrendingUp, TrendingDown, ShieldCheck } from "lucide-react";
+import dayjs from "dayjs";
 import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 import { supabase } from "@/lib/supabase";
 
