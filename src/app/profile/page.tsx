@@ -190,7 +190,7 @@ export default function ProfilePage() {
           <div className="lg:col-span-9 space-y-8">
             
             {/* Quick Actions (Analysts Only) */}
-            {profile.role === "analyst" && (
+            {(profile.role === "analyst" || profile.is_admin) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <Link href={`/analyst/${profile.username}`} className="group">
                    <div className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between hover:border-primary/50 hover:bg-white/[0.02] transition-all">
@@ -218,6 +218,22 @@ export default function ProfilePage() {
                      </div>
                    </div>
                  </Link>
+                 
+                 {profile.is_admin && (
+                    <Link href="/oracle" className="group">
+                      <div className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between hover:border-red-500/50 hover:bg-white/[0.02] transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
+                            <Shield size={18} />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-bold text-foreground">Admin Dashboard</h3>
+                            <p className="text-xs text-muted-foreground">Manage users and grades</p>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                 )}
               </div>
             )}
 
