@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Loader2, X, ChevronRight, ChevronDown } from "lucide-react";
+import { Search, Loader2, X, ChevronRight, ChevronDown, TrendingUp, TrendingDown, ShieldCheck } from "lucide-react";
 import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 import { supabase } from "@/lib/supabase";
 
@@ -17,26 +17,41 @@ export type OddSelection = {
   metadata?: any;
 };
 
+// ---------------------------------------------------------------------------
+// Data Types
+// ---------------------------------------------------------------------------
+
+type ChipData = {
+  id: string;
+  label: string;
+  value: number;
+  movement?: "up" | "down";
+  meta: any;
+};
+
+type ClusterData = {
+  id: string;
+  title: string;
+  chips: ChipData[];
+};
+
 type Game = {
   id: string;
   sport: string;
   competition: string;
   title: string;
   startTime: string;
-  isSoccer: boolean;
-  markets: {
-    ml: { 
-      home: { name: string, odds: number }, 
-      away: { name: string, odds: number },
-      draw?: { name: 'Draw', odds: number }
-    },
-    total: { 
-      over: { line: string, odds: number }, 
-      under: { line: string, odds: number } 
-    }
-  },
-  rawOdds: any
+  status: { live: boolean; minute?: string; time?: string };
+  home: { name: string; short: string; color: string };
+  away: { name: string; short: string; color: string };
+  score?: { home: number; away: number };
+  markets: { clusters: ClusterData[] };
+  rawOdds: any;
 };
+
+// ---------------------------------------------------------------------------
+// Parsers
+// ---------------------------------------------------------------------------
 
 function normalizeOdds(odds: number | string): number {
   const o = parseFloat(odds as string);
@@ -44,6 +59,19 @@ function normalizeOdds(odds: number | string): number {
   if (o >= 100) return (o / 100) + 1;
   if (o <= -100) return (100 / Math.abs(o)) + 1;
   return o;
+}
+
+const getShort = (name: string) => name.substring(0, 3).toUpperCase();
+const getColor = (str: string) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+  return "#" + "00000".substring(0, 6 - c.length) + c;
+};
+
+function formatStartTime(dateStr: string) {
+  const d = new Date(dateStr);
+  return `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
 }
 
 function parseApiFootballEvent(eventRow: any): Game | null {
@@ -62,24 +90,44 @@ function parseApiFootballEvent(eventRow: any): Game | null {
   const over25 = goalsOverUnder?.values?.find((v: any) => v.value === "Over 2.5")?.odd;
   const under25 = goalsOverUnder?.values?.find((v: any) => v.value === "Under 2.5")?.odd;
 
+  const homeOdds = getVal(matchWinner, "Home");
+  const drawOdds = getVal(matchWinner, "Draw");
+  const awayOdds = getVal(matchWinner, "Away");
+  const o25Odds = over25 ? normalizeOdds(over25) : 0;
+  const u25Odds = under25 ? normalizeOdds(under25) : 0;
+
+  const isLive = new Date(eventRow.commence_time).getTime() < Date.now();
+
   return {
     id: eventRow.id,
     sport: 'Football',
     competition: data.league_name || "Football",
     title: `${eventRow.home_team} vs ${eventRow.away_team}`,
     startTime: eventRow.commence_time,
-    isSoccer: true,
+    status: isLive ? { live: true, minute: "LIVE" } : { live: false, time: formatStartTime(eventRow.commence_time) },
+    home: { name: eventRow.home_team, short: getShort(eventRow.home_team), color: getColor(eventRow.home_team) },
+    away: { name: eventRow.away_team, short: getShort(eventRow.away_team), color: getColor(eventRow.away_team) },
     rawOdds: data,
     markets: {
-      ml: {
-        home: { name: eventRow.home_team, odds: getVal(matchWinner, "Home") },
-        draw: { name: "Draw", odds: getVal(matchWinner, "Draw") },
-        away: { name: eventRow.away_team, odds: getVal(matchWinner, "Away") }
-      },
-      total: {
-        over: { line: "O 2.5", odds: over25 ? normalizeOdds(over25) : 0 },
-        under: { line: "U 2.5", odds: under25 ? normalizeOdds(under25) : 0 }
-      }
+      clusters: [
+        {
+          id: "1x2",
+          title: "1X2",
+          chips: [
+            { id: `${eventRow.id}-ml-${eventRow.home_team}Winner`, label: "1", value: homeOdds, meta: { type: 'ml', selectionName: `${eventRow.home_team} Winner`, team: eventRow.home_team } },
+            { id: `${eventRow.id}-ml-Draw`, label: "X", value: drawOdds, meta: { type: 'ml', selectionName: `Draw`, team: "Draw" } },
+            { id: `${eventRow.id}-ml-${eventRow.away_team}Winner`, label: "2", value: awayOdds, meta: { type: 'ml', selectionName: `${eventRow.away_team} Winner`, team: eventRow.away_team } },
+          ]
+        },
+        {
+          id: "ou",
+          title: "O/U",
+          chips: [
+            { id: `${eventRow.id}-total-O2.5`, label: "O 2.5", value: o25Odds, meta: { type: 'total', selectionName: 'Over 2.5', line: 2.5 } },
+            { id: `${eventRow.id}-total-U2.5`, label: "U 2.5", value: u25Odds, meta: { type: 'total', selectionName: 'Under 2.5', line: 2.5 } },
+          ]
+        }
+      ]
     }
   };
 }
@@ -108,61 +156,294 @@ function parseTheOddsApiEvent(eventRow: any): Game | null {
 
   const isSoccer = data.sport_key.toLowerCase().includes('soccer');
   let sportName = data.sport_title;
-  let competition = data.sport_title;
   
   if (data.sport_key.toLowerCase().includes('americanfootball') || data.sport_key.toLowerCase().includes('nfl') || data.sport_key.toLowerCase().includes('ncaa')) {
     sportName = "American Football";
   }
 
+  const isLive = new Date(data.commence_time).getTime() < Date.now();
+  
+  let clusters: ClusterData[] = [];
+  
+  if (isSoccer) {
+    clusters = [
+      {
+        id: "1x2",
+        title: "1X2",
+        chips: [
+          { id: `${eventRow.id}-ml-${data.home_team}Winner`, label: "1", value: normalizeOdds(homeH2H.price), meta: { type: 'ml', selectionName: `${data.home_team} Winner`, team: data.home_team } },
+          { id: `${eventRow.id}-ml-Draw`, label: "X", value: normalizeOdds(drawH2H.price), meta: { type: 'ml', selectionName: `Draw`, team: "Draw" } },
+          { id: `${eventRow.id}-ml-${data.away_team}Winner`, label: "2", value: normalizeOdds(awayH2H.price), meta: { type: 'ml', selectionName: `${data.away_team} Winner`, team: data.away_team } },
+        ]
+      },
+      {
+        id: "ou",
+        title: "O/U",
+        chips: [
+          { id: `${eventRow.id}-total-O${overTotal.point||2.5}`, label: `O ${overTotal.point||2.5}`, value: normalizeOdds(overTotal.price), meta: { type: 'total', selectionName: `Over ${overTotal.point||2.5}`, line: overTotal.point || 2.5 } },
+          { id: `${eventRow.id}-total-U${underTotal.point||2.5}`, label: `U ${underTotal.point||2.5}`, value: normalizeOdds(underTotal.price), meta: { type: 'total', selectionName: `Under ${underTotal.point||2.5}`, line: underTotal.point || 2.5 } },
+        ]
+      }
+    ];
+  } else {
+    clusters = [
+      {
+        id: "ou",
+        title: "O/U",
+        chips: [
+          { id: `${eventRow.id}-total-O${overTotal.point}`, label: `O ${overTotal.point||''}`, value: normalizeOdds(overTotal.price), meta: { type: 'total', selectionName: `Over ${overTotal.point}`, line: overTotal.point } },
+          { id: `${eventRow.id}-total-U${underTotal.point}`, label: `U ${underTotal.point||''}`, value: normalizeOdds(underTotal.price), meta: { type: 'total', selectionName: `Under ${underTotal.point}`, line: underTotal.point } },
+        ]
+      },
+      {
+        id: "winner",
+        title: "WINNER",
+        chips: [
+          { id: `${eventRow.id}-ml-${data.home_team}Winner`, label: "1", value: normalizeOdds(homeH2H.price), meta: { type: 'ml', selectionName: `${data.home_team} Winner`, team: data.home_team } },
+          { id: `${eventRow.id}-ml-${data.away_team}Winner`, label: "2", value: normalizeOdds(awayH2H.price), meta: { type: 'ml', selectionName: `${data.away_team} Winner`, team: data.away_team } },
+        ]
+      }
+    ];
+  }
+
   return {
     id: eventRow.id,
     sport: sportName,
-    competition: competition,
+    competition: data.sport_title,
     title: `${data.home_team} vs ${data.away_team}`,
     startTime: data.commence_time,
-    isSoccer,
+    status: isLive ? { live: true, minute: "LIVE" } : { live: false, time: formatStartTime(data.commence_time) },
+    home: { name: data.home_team, short: getShort(data.home_team), color: getColor(data.home_team) },
+    away: { name: data.away_team, short: getShort(data.away_team), color: getColor(data.away_team) },
     rawOdds: data,
-    markets: {
-      ml: {
-        home: { name: data.home_team, odds: normalizeOdds(homeH2H.price) },
-        away: { name: data.away_team, odds: normalizeOdds(awayH2H.price) },
-        ...(isSoccer ? { draw: { name: 'Draw', odds: normalizeOdds(drawH2H.price) } } : {})
-      },
-      total: {
-        over: { line: overTotal.point ? `O ${overTotal.point}` : '', odds: normalizeOdds(overTotal.price) },
-        under: { line: underTotal.point ? `U ${underTotal.point}` : '', odds: normalizeOdds(underTotal.price) }
-      }
-    }
+    markets: { clusters }
   };
 }
 
-const OddsCell = ({ price, onClick, isActive }: { price: number, onClick?: () => void, isActive?: boolean }) => {
-  if (price === 0) {
+// ---------------------------------------------------------------------------
+// Primitives
+// ---------------------------------------------------------------------------
+
+const clusterWidth = (chipCount: number) => (chipCount >= 3 ? 216 : 150);
+
+function OddChip({ chip, matchLabel, selected, onToggle }: { chip: ChipData, matchLabel: string, selected: boolean, onToggle: (chip: ChipData) => void }) {
+  if (!chip.value || chip.value === 0) {
     return (
-      <div className="flex items-center justify-center h-10 w-full rounded border border-dashed border-border bg-transparent">
-        <span className="text-xs font-semibold text-muted-foreground">—</span>
+      <div 
+        className="relative flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 border"
+        style={{ minWidth: 66, backgroundColor: "var(--surface-2)", borderColor: "var(--border)", opacity: 0.5 }}
+      >
+        <span className="text-3xs font-mono uppercase tracking-wider text-ink-faint">{chip.label}</span>
+        <span className="text-sm font-mono font-semibold text-ink-dim">—</span>
       </div>
     );
   }
+
   return (
-    <button 
-      onClick={onClick}
-      className={`flex items-center justify-center h-10 w-full rounded border transition-colors cursor-pointer group ${isActive ? 'bg-primary border-primary text-primary-foreground' : 'border-border bg-muted/20 hover:border-primary/50 hover:bg-primary/10 focus:ring-2 focus:ring-primary'}`}
+    <button
+      type="button"
+      aria-pressed={selected}
+      aria-label={`${matchLabel} — ${chip.label} at ${chip.value.toFixed(2)}`}
+      onClick={() => onToggle(chip)}
+      className="relative flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 border transition-all duration-150 active:scale-95 group"
+      style={{
+        minWidth: 66,
+        backgroundColor: selected ? "var(--lime)" : "var(--surface-2)",
+        borderColor: selected ? "var(--lime)" : "var(--border)",
+        boxShadow: selected
+          ? "0 0 0 1px rgba(204,255,0,0.35), 0 6px 18px -6px rgba(204,255,0,0.55)"
+          : "none",
+      }}
     >
-      <span className="text-[12px] font-bold font-mono">{price.toFixed(2)}</span>
+      <span
+        className="pointer-events-none absolute transition-all duration-200"
+        style={{
+          inset: -4,
+          opacity: selected ? 1 : 0,
+          transform: selected ? "scale(1)" : "scale(0.85)",
+        }}
+      >
+        <span className="absolute top-0 left-0 h-2 w-2 border-t border-l" style={{ borderColor: "var(--obsidian)" }} />
+        <span className="absolute top-0 right-0 h-2 w-2 border-t border-r" style={{ borderColor: "var(--obsidian)" }} />
+        <span className="absolute bottom-0 left-0 h-2 w-2 border-b border-l" style={{ borderColor: "var(--obsidian)" }} />
+        <span className="absolute bottom-0 right-0 h-2 w-2 border-b border-r" style={{ borderColor: "var(--obsidian)" }} />
+      </span>
+
+      <span
+        className="text-3xs font-mono uppercase tracking-wider transition-colors"
+        style={{ color: selected ? "rgba(10,10,13,0.65)" : "var(--ink-faint)" }}
+      >
+        {chip.label}
+      </span>
+      <span
+        className="text-sm font-mono font-semibold flex items-center gap-0.5 transition-colors group-hover:text-lime"
+        style={{ color: selected ? "var(--obsidian)" : "var(--ink)" }}
+      >
+        {chip.value.toFixed(2)}
+        {chip.movement === "up" && <TrendingUp className="h-3 w-3 text-emerald-400" strokeWidth={2.5} />}
+        {chip.movement === "down" && <TrendingDown className="h-3 w-3" style={{ color: "var(--live)" }} strokeWidth={2.5} />}
+      </span>
     </button>
   );
-};
+}
+
+function ChipCluster({ title, children }: { title: string, children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-3xs font-mono uppercase tracking-widest text-ink-faint">{title}</span>
+      <div className="flex items-center gap-1.5">{children}</div>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: Game['status'] }) {
+  if (status.live) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className="relative flex h-2 w-2">
+          <span className="live-ping absolute inline-flex h-full w-full rounded-full" style={{ backgroundColor: "var(--live)" }} />
+          <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: "var(--live)" }} />
+        </span>
+        <span className="text-2xs font-mono font-semibold text-live">{status.minute}</span>
+      </div>
+    );
+  }
+  return <span className="text-2xs font-mono text-ink-dim whitespace-nowrap">{status.time}</span>;
+}
+
+function TeamLine({ team, score, live }: { team: Game['home'], score?: number, live: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-2 min-w-0">
+        <span
+          className="flex-none h-5 w-5 rounded-full flex items-center justify-center text-3xs font-mono font-bold"
+          style={{ backgroundColor: team.color + "22", color: team.color, border: `1px solid ${team.color}66` }}
+        >
+          {team.short[0]}
+        </span>
+        <span className="text-sm font-medium text-ink truncate">{team.name}</span>
+      </div>
+      {live && score !== undefined && <span className="text-sm font-mono font-semibold text-ink flex-none">{score}</span>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Match row
+// ---------------------------------------------------------------------------
+
+function MatchRow({ match, selections, onToggle }: { match: Game, selections: Set<string>, onToggle: (match: Game, chip: ChipData) => void }) {
+  const matchLabel = match.title;
+
+  return (
+    <>
+      <div
+        className="hidden lg:flex items-center gap-5 px-4 py-3 border-b transition-colors"
+        style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+      >
+        <div style={{ width: 76 }} className="flex-none">
+          <StatusBadge status={match.status} />
+        </div>
+
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          <TeamLine team={match.home} score={match.score?.home} live={match.status.live} />
+          <TeamLine team={match.away} score={match.score?.away} live={match.status.live} />
+        </div>
+
+        <div className="flex-none flex items-center gap-6">
+          {match.markets.clusters.map((cluster) => (
+            <div key={cluster.id} style={{ width: clusterWidth(cluster.chips.length) }} className="flex items-center justify-center gap-1.5">
+              {cluster.chips.map((chip) => (
+                <OddChip key={chip.id} chip={chip} matchLabel={matchLabel} selected={selections.has(chip.id)} onToggle={(c) => onToggle(match, c)} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="lg:hidden flex flex-col gap-3 p-3 border-b" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+        <div className="flex items-center justify-between">
+          <StatusBadge status={match.status} />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <TeamLine team={match.home} score={match.score?.home} live={match.status.live} />
+          <TeamLine team={match.away} score={match.score?.away} live={match.status.live} />
+        </div>
+
+        <div className="flex items-start justify-between gap-2 pt-1 overflow-x-auto scrollbar-none">
+          {match.markets.clusters.map((cluster) => (
+            <ChipCluster key={cluster.id} title={cluster.title}>
+              {cluster.chips.map((chip) => (
+                <OddChip key={chip.id} chip={chip} matchLabel={matchLabel} selected={selections.has(chip.id)} onToggle={(c) => onToggle(match, c)} />
+              ))}
+            </ChipCluster>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// League group
+// ---------------------------------------------------------------------------
+
+function LeagueGroup({ name, games, collapsed, onToggleCollapse, selections, onToggle }: { name: string, games: Game[], collapsed: boolean, onToggleCollapse: () => void, selections: Set<string>, onToggle: (match: Game, chip: ChipData) => void }) {
+  const sample = games[0];
+  const clusterTitles = sample ? sample.markets.clusters.map((c) => ({ title: c.title, width: clusterWidth(c.chips.length) })) : [];
+
+  return (
+    <div className="mb-4 rounded-xl overflow-hidden border shadow-sm" style={{ borderColor: "var(--border)", backgroundColor: "var(--obsidian)" }}>
+      <button
+        type="button"
+        onClick={onToggleCollapse}
+        className="w-full flex items-center justify-between gap-4 px-4 py-3 text-left hover:bg-white/5 transition-colors"
+        style={{ backgroundColor: "var(--surface-2)" }}
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="text-sm font-semibold text-ink truncate">{name}</span>
+          <span className="text-3xs font-mono text-ink-faint surface-2 rounded-full px-1.5 py-0.5 flex-none" style={{ backgroundColor: "var(--surface)" }}>
+            {games.length}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-6 flex-none">
+          <div className="hidden lg:flex items-center gap-6">
+            {clusterTitles.map((c, i) => (
+              <span key={i} style={{ width: c.width }} className="text-3xs font-mono uppercase tracking-widest text-ink-faint text-center">
+                {c.title}
+              </span>
+            ))}
+          </div>
+          <ChevronDown
+            className="h-4 w-4 text-ink-faint transition-transform duration-200"
+            style={{ transform: collapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
+          />
+        </div>
+      </button>
+
+      {!collapsed && (
+        <div className="flex flex-col">
+          {games.map((m) => (
+            <MatchRow key={m.id} match={m} selections={selections} onToggle={onToggle} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Root OddsBoard
+// ---------------------------------------------------------------------------
 
 export default function OddsBoard({ onAddSelection }: { onAddSelection: (selection: OddSelection) => void }) {
-  const [search, setSearch] = useState("");
-  const [sportFilter, setSportFilter] = useState("All");
   const [liveGames, setLiveGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeSelections, setActiveSelections] = useState<Set<string>>(new Set());
-  
-  // Modal State
-  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+  const [activeSport, setActiveSport] = useState("All");
+  const [collapsedLeagues, setCollapsedLeagues] = useState<Record<string, boolean>>({});
+  const [selections, setSelections] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchLiveEvents = async () => {
@@ -181,345 +462,149 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
       }
       setIsLoading(false);
     };
-
     fetchLiveEvents();
   }, []);
 
-  const getDynamicSports = () => {
-    const categories = new Set<string>();
-    liveGames.forEach(g => {
-      const s = g.sport.toLowerCase();
-      if (s.includes("american football") || s.includes("nfl") || s.includes("ncaa")) categories.add("American Football");
-      else if (s.includes("basketball") || s.includes("nba")) categories.add("Basketball");
-      else if (s.includes("football") || s.includes("soccer") || s.includes("epl") || s.includes("fifa")) categories.add("Football");
-      else if (s.includes("tennis") || s.includes("atp") || s.includes("wta")) categories.add("Tennis");
-      else if (s.includes("baseball") || s.includes("mlb")) categories.add("Baseball");
-      else if (s.includes("mma") || s.includes("ufc")) categories.add("MMA");
-      else if (s.includes("afl") || s.includes("aussie")) categories.add("Aussie Rules");
-      else if (s.includes("cricket") || s.includes("test match") || s.includes("t20") || s.includes("odi")) categories.add("Cricket");
-      else if (s.includes("rugby")) categories.add("Rugby");
-      else if (s.includes("ice hockey") || s.includes("nhl")) categories.add("Ice Hockey");
-      else categories.add(g.sport); 
-    });
-    
-    return Array.from(categories).sort();
-  };
+  const toggleLeague = (id: string) => setCollapsedLeagues((prev) => ({ ...prev, [id]: !prev[id] }));
 
-  const filterByGenericSport = (gameSport: string, filter: string) => {
-    if (filter === "All") return true;
-    const s = gameSport.toLowerCase();
-    
-    if (filter === "American Football") return s.includes("american football") || s.includes("nfl") || s.includes("ncaa");
-    if (filter === "Basketball") return s.includes("nba") || s.includes("basketball") || s.includes("wnba");
-    if (filter === "Football") return (s.includes("football") && !s.includes("american")) || s.includes("soccer") || s.includes("epl") || s.includes("fifa");
-    if (filter === "Tennis") return s.includes("tennis") || s.includes("atp") || s.includes("wta");
-    if (filter === "Baseball") return s.includes("mlb") || s.includes("baseball") || s.includes("npb") || s.includes("kbo");
-    if (filter === "MMA") return s.includes("mma") || s.includes("ufc");
-    if (filter === "Aussie Rules") return s.includes("afl") || s.includes("aussie");
-    if (filter === "Cricket") return s.includes("cricket") || s.includes("test match") || s.includes("t20") || s.includes("odi");
-    if (filter === "Rugby") return s.includes("rugby");
-    if (filter === "Ice Hockey") return s.includes("ice hockey") || s.includes("nhl");
-    
-    return gameSport === filter; 
-  };
+  const handleToggle = (game: Game, chip: ChipData) => {
+    const newActive = new Set(selections);
+    if (newActive.has(chip.id)) {
+      newActive.delete(chip.id);
+    } else {
+      newActive.add(chip.id);
+    }
+    setSelections(newActive);
 
-  const filteredGames = liveGames.filter(g => 
-    filterByGenericSport(g.sport, sportFilter) &&
-    (g.title.toLowerCase().includes(search.toLowerCase()) || 
-     g.sport.toLowerCase().includes(search.toLowerCase()) || 
-     g.competition.toLowerCase().includes(search.toLowerCase()))
-  );
-
-  const handleOddClick = (game: Game, type: OddSelection['type'], selectionName: string, odds: number, metadata: any) => {
-    if (odds === 0) return;
-    
-    const uniqueId = `${game.id}-${type}-${selectionName.replace(/\s+/g, '')}`;
-    
-    const newActive = new Set(activeSelections);
-    if (newActive.has(uniqueId)) newActive.delete(uniqueId);
-    else newActive.add(uniqueId);
-    setActiveSelections(newActive);
-
+    // Communicate up to parent
     onAddSelection({
-      id: uniqueId,
+      id: chip.id,
       gameId: game.id,
       sport: game.sport,
       matchTitle: game.title,
-      type,
-      selectionName,
-      odds,
+      type: chip.meta.type,
+      selectionName: chip.meta.selectionName,
+      odds: chip.value,
       startTime: game.startTime,
-      metadata
+      metadata: { ...chip.meta, homeTeam: game.home.name, awayTeam: game.away.name }
     });
   };
 
+  const getDynamicSports = () => {
+    const categories = new Set<string>();
+    liveGames.forEach(g => categories.add(g.sport));
+    return Array.from(categories).sort();
+  };
+
   const allAvailableSports = getDynamicSports();
-  const coreSportsOrder = ["Football", "Basketball", "Tennis", "American Football", "Ice Hockey", "Baseball"];
-  const availableCoreSports = coreSportsOrder.filter(s => allAvailableSports.includes(s));
-  const otherSports = allAvailableSports.filter(s => !coreSportsOrder.includes(s));
   
-  const isOtherSportSelected = otherSports.includes(sportFilter);
+  // Group logic
+  const filteredGames = activeSport === "All" ? liveGames : liveGames.filter(g => g.sport === activeSport);
+  const gamesByLeague = filteredGames.reduce((acc, game) => {
+    if (!acc[game.competition]) acc[game.competition] = [];
+    acc[game.competition].push(game);
+    return acc;
+  }, {} as Record<string, Game[]>);
 
   return (
-    <div className="w-full h-full flex flex-col bg-background/50 border border-border rounded-xl overflow-hidden shadow-xl relative">
-      
-      {/* Top Search & Tabs */}
-      <div className="p-4 border-b border-border bg-card flex flex-col xl:flex-row gap-3 xl:items-center">
-        <div className="relative w-full xl:max-w-[280px] flex-none">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
-          <input 
-            type="text" 
-            placeholder="Search matches or leagues..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-muted/40 border border-border rounded-full pl-9 pr-8 py-2 text-sm focus:outline-none focus:border-primary focus:bg-muted/80 transition-colors"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground bg-border rounded-full p-0.5">
-              <X size={12} />
-            </button>
-          )}
-        </div>
-        
-        <div className="flex gap-1.5 w-full xl:w-auto overflow-x-auto pb-1 xl:pb-0 bg-muted/30 p-1 rounded-full border border-border [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <button
-            onClick={() => setSportFilter("All")}
-            className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-              sportFilter === "All" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            All
-          </button>
-          {availableCoreSports.map(sport => (
-            <button
-              key={sport}
-              onClick={() => setSportFilter(sport)}
-              className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors ${
-                sportFilter === sport ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {sport}
-            </button>
-          ))}
-          
-          {/* More Sports Dropdown / Selector */}
-          {otherSports.length > 0 && (
-            <div className="relative flex items-center shrink-0">
-              <select 
-                value={isOtherSportSelected ? sportFilter : ""}
-                onChange={(e) => { setSportFilter(e.target.value); (document.activeElement as HTMLElement)?.blur(); }}
-                className={`appearance-none outline-none flex items-center gap-1 px-3.5 py-1.5 rounded-full text-[13px] font-semibold transition-colors cursor-pointer pr-8 ${
-                  isOtherSportSelected ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground bg-muted/50"
-                }`}
-              >
-                <option value="" disabled hidden>More</option>
-                {otherSports.map(sport => (
-                  <option key={sport} value={sport} className="text-foreground bg-card">{sport}</option>
-                ))}
-              </select>
-              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-70" />
-            </div>
-          )}
-        </div>
-      </div>
+    <div className="verid-oddsboard flex-1 flex flex-col min-h-[500px] border border-border rounded-xl overflow-hidden shadow-2xl relative" style={{ backgroundColor: "var(--obsidian)" }}>
+      <style>{`
+        .verid-oddsboard {
+          --obsidian: #0a0a0d;
+          --surface: #131318;
+          --surface-2: #1a1a22;
+          --border: #26262f;
+          --ink: #f4f4f2;
+          --ink-dim: #8b8b96;
+          --ink-faint: #55555f;
+          --lime: #ccff00;
+          --live: #ff5470;
+          font-variant-numeric: tabular-nums;
+        }
+        .verid-oddsboard .text-ink { color: var(--ink); }
+        .verid-oddsboard .text-ink-dim { color: var(--ink-dim); }
+        .verid-oddsboard .text-ink-faint { color: var(--ink-faint); }
+        .verid-oddsboard .text-lime { color: var(--lime); }
+        .verid-oddsboard .text-live { color: var(--live); }
+        .verid-oddsboard .text-3xs { font-size: 9px; line-height: 1.3; }
+        .verid-oddsboard .text-2xs { font-size: 10.5px; line-height: 1.4; }
+        .verid-oddsboard .scrollbar-none::-webkit-scrollbar { display: none; }
+        .verid-oddsboard .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+        .verid-oddsboard button:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; border-radius: 4px; }
+        @keyframes veridPulse {
+          0% { opacity: 0.9; transform: scale(1); }
+          70% { opacity: 0; transform: scale(2.1); }
+          100% { opacity: 0; transform: scale(2.1); }
+        }
+        .verid-oddsboard .live-ping { animation: veridPulse 1.8s cubic-bezier(0.4,0,0.6,1) infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .verid-oddsboard .live-ping { animation: none; }
+          .verid-oddsboard * { transition-duration: 0.01ms !important; }
+        }
+      `}</style>
 
-      {/* Main Odds Area */}
-      <div className="flex-1 overflow-y-auto bg-[#0a0a0a]">
-        {isLoading && (
-          <div className="flex-1 flex flex-col items-center justify-center py-20">
-            <CryptoEngineLoader size="md" text="FETCHING LIVE ORACLE DATA..." />
-          </div>
-        )}
-
-        {!isLoading && filteredGames.length === 0 && (
-          <div className="text-center p-12 m-4 border border-dashed border-border rounded-xl bg-card">
-            <p className="text-muted-foreground font-medium">No live markets available.</p>
-          </div>
-        )}
-
-        {!isLoading && filteredGames.length > 0 && (
-          <div className="hidden sm:grid sticky top-0 z-10 grid-cols-[2fr_repeat(5,minmax(60px,80px))_40px] gap-1.5 items-center px-4 py-2 border-b border-border bg-card/95 backdrop-blur text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-            <div>Match</div>
-            <div className="text-center">1</div>
-            <div className="text-center">X</div>
-            <div className="text-center">2</div>
-            <div className="text-center">O 2.5</div>
-            <div className="text-center">U 2.5</div>
-            <div></div>
-          </div>
-        )}
-
-        {!isLoading && filteredGames.map(game => {
-          const isLive = new Date(game.startTime).getTime() < Date.now();
-          const d = new Date(game.startTime);
-          const timeStr = `${d.getDate()}/${d.getMonth()+1} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
-          const disableDraw = !game.isSoccer && !game.markets.ml.draw;
-
+      {/* Sport tabs */}
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none px-4 py-3 border-b" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}>
+        <button
+          onClick={() => setActiveSport("All")}
+          className="flex-none flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+          style={{
+            backgroundColor: activeSport === "All" ? "var(--lime)" : "var(--surface)",
+            color: activeSport === "All" ? "var(--obsidian)" : "var(--ink-dim)",
+          }}
+        >
+          All Sports
+        </button>
+        {allAvailableSports.map((s) => {
+          const active = activeSport === s;
+          const hasLive = liveGames.some((g) => g.sport === s && g.status.live);
           return (
-            <div key={game.id} className="flex flex-col gap-2 sm:grid sm:grid-cols-[2fr_repeat(5,minmax(60px,80px))_40px] sm:gap-1.5 sm:items-center px-4 py-3 border-b border-border hover:bg-muted/10 transition-colors group">
-              <div 
-                className="flex flex-col min-w-0 pr-2 cursor-pointer hover:opacity-80 mb-2 sm:mb-0"
-                onClick={() => setSelectedGame(game)}
-              >
-                <div className="flex items-center gap-1.5 mb-1.5">
-                  {isLive ? (
-                    <span className="flex items-center gap-1 text-[9px] font-extrabold tracking-widest text-red-500 uppercase">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                      LIVE
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground font-mono">{timeStr}</span>
-                  )}
-                  {/* Clean Competition Badge */}
-                  <span className="text-[9px] text-primary/90 bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded uppercase truncate max-w-[150px] font-semibold">{game.competition}</span>
-                </div>
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[13px] font-semibold truncate text-foreground/90">{game.markets.ml.home.name}</span>
-                  <span className="text-[13px] font-semibold truncate text-foreground/90">{game.markets.ml.away.name}</span>
-                </div>
-              </div>
-
-              <OddsCell 
-                price={game.markets.ml.home.odds} 
-                isActive={activeSelections.has(`${game.id}-ml-${game.markets.ml.home.name}Winner`)}
-                onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.home.name} Winner`, game.markets.ml.home.odds, { team: game.markets.ml.home.name, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
-              />
-              <div className={disableDraw ? "opacity-30 pointer-events-none" : ""}>
-                <OddsCell 
-                  price={game.markets.ml.draw?.odds || 0} 
-                  isActive={activeSelections.has(`${game.id}-ml-Draw`)}
-                  onClick={() => handleOddClick(game, 'ml', 'Draw', game.markets.ml.draw?.odds || 0, { team: 'Draw', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
+            <button
+              key={s}
+              onClick={() => setActiveSport(s)}
+              className="flex-none flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors border"
+              style={{
+                backgroundColor: active ? "var(--lime)" : "var(--surface)",
+                borderColor: active ? "var(--lime)" : "var(--border)",
+                color: active ? "var(--obsidian)" : "var(--ink)",
+              }}
+            >
+              <span className="text-3xs font-mono opacity-70 uppercase">{s.substring(0,3)}</span>
+              {s}
+              {hasLive && (
+                <span
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: active ? "var(--obsidian)" : "var(--live)" }}
                 />
-              </div>
-              <OddsCell 
-                price={game.markets.ml.away.odds} 
-                isActive={activeSelections.has(`${game.id}-ml-${game.markets.ml.away.name}Winner`)}
-                onClick={() => handleOddClick(game, 'ml', `${game.markets.ml.away.name} Winner`, game.markets.ml.away.odds, { team: game.markets.ml.away.name, homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name })}
-              />
-              <OddsCell 
-                price={game.markets.total.over.odds} 
-                isActive={activeSelections.has(`${game.id}-total-${game.markets.total.over.line}`)}
-                onClick={() => handleOddClick(game, 'total', game.markets.total.over.line || 'Over', game.markets.total.over.odds, { type: 'over', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name, line: parseFloat(game.markets.total.over.line.replace(/[^0-9.]/g, '')) || 2.5 })}
-              />
-              <OddsCell 
-                price={game.markets.total.under.odds} 
-                isActive={activeSelections.has(`${game.id}-total-${game.markets.total.under.line}`)}
-                onClick={() => handleOddClick(game, 'total', game.markets.total.under.line || 'Under', game.markets.total.under.odds, { type: 'under', homeTeam: game.markets.ml.home.name, awayTeam: game.markets.ml.away.name, line: parseFloat(game.markets.total.under.line.replace(/[^0-9.]/g, '')) || 2.5 })}
-              />
-
-              <div className="flex items-center justify-center">
-                <button 
-                  onClick={() => setSelectedGame(game)}
-                  className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-border/50 text-muted-foreground hover:text-foreground transition-colors" 
-                  title="More Markets"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </div>
+              )}
+            </button>
           );
         })}
       </div>
 
-      {/* Match Details Slide-out Modal */}
-      {selectedGame && (
-        <div className="absolute inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md h-full bg-card border-l border-border flex flex-col shadow-2xl animate-in slide-in-from-right-8 duration-300">
-            
-            {/* Header */}
-            <div className="flex items-start justify-between p-4 border-b border-border bg-muted/20">
-              <div>
-                <p className="text-xs text-primary font-semibold uppercase tracking-wider mb-1">{selectedGame.competition}</p>
-                <h3 className="text-lg font-bold leading-tight">{selectedGame.title}</h3>
-              </div>
-              <button 
-                onClick={() => setSelectedGame(null)}
-                className="p-2 rounded-full hover:bg-border/50 text-muted-foreground transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Scrollable Markets */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              
-              {selectedGame.isSoccer ? (
-                // API-FOOTBALL DEEP MARKETS
-                (() => {
-                  const bookmaker = selectedGame.rawOdds.bookmakers?.[0];
-                  if (!bookmaker || !bookmaker.bets) return <p className="text-muted-foreground text-sm">No markets available.</p>;
-
-                  return bookmaker.bets.map((market: any, idx: number) => {
-                    // Only show interesting markets
-                    const hideMarkets = [1, 5]; // Hide 1X2 and main Over/Under as they are already on main screen
-                    if (hideMarkets.includes(market.id)) return null;
-
-                    return (
-                      <div key={idx} className="bg-muted/10 border border-border rounded-lg overflow-hidden">
-                        <div className="bg-muted/30 px-3 py-2 border-b border-border text-sm font-semibold text-foreground/90">
-                          {market.name}
-                        </div>
-                        <div className="grid grid-cols-2 gap-[1px] bg-border p-[1px]">
-                          {market.values.map((v: any, vIdx: number) => {
-                            const oddsVal = normalizeOdds(v.odd);
-                            const uId = `${selectedGame.id}-prop-${market.name}-${v.value}`;
-                            return (
-                              <button
-                                key={vIdx}
-                                onClick={() => handleOddClick(selectedGame, 'prop', `${market.name}: ${v.value}`, oddsVal, {})}
-                                className={`flex items-center justify-between px-3 py-2.5 text-sm transition-colors ${
-                                  activeSelections.has(uId) ? 'bg-primary text-primary-foreground font-bold' : 'bg-card hover:bg-muted/50'
-                                }`}
-                              >
-                                <span className={activeSelections.has(uId) ? "text-primary-foreground" : "text-muted-foreground"}>{v.value}</span>
-                                <span className="font-mono font-bold">{oddsVal.toFixed(2)}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  });
-                })()
-              ) : (
-                // THE-ODDS-API MARKETS (Non-Soccer)
-                (() => {
-                  const bookmaker = selectedGame.rawOdds.bookmakers?.find((b: any) => b.key === 'draftkings') || selectedGame.rawOdds.bookmakers?.[0];
-                  if (!bookmaker) return <p className="text-muted-foreground text-sm">No markets available.</p>;
-
-                  return bookmaker.markets.map((market: any, idx: number) => {
-                    return (
-                      <div key={idx} className="bg-muted/10 border border-border rounded-lg overflow-hidden">
-                        <div className="bg-muted/30 px-3 py-2 border-b border-border text-sm font-semibold text-foreground/90 capitalize">
-                          {market.key.replace('_', ' ')}
-                        </div>
-                        <div className="grid grid-cols-2 gap-[1px] bg-border p-[1px]">
-                          {market.outcomes.map((o: any, oIdx: number) => {
-                            const oddsVal = normalizeOdds(o.price);
-                            const uId = `${selectedGame.id}-prop-${market.key}-${o.name}`;
-                            return (
-                              <button
-                                key={oIdx}
-                                onClick={() => handleOddClick(selectedGame, 'prop', `${market.key}: ${o.name} ${o.point ? o.point : ''}`, oddsVal, {})}
-                                className={`flex flex-col items-center justify-center px-2 py-3 text-sm transition-colors ${
-                                  activeSelections.has(uId) ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-muted/50'
-                                }`}
-                              >
-                                <span className={`text-xs mb-1 ${activeSelections.has(uId) ? "text-primary-foreground/80" : "text-muted-foreground"}`}>{o.name} {o.point ? (o.point > 0 ? `+${o.point}` : o.point) : ''}</span>
-                                <span className="font-mono font-bold">{oddsVal.toFixed(2)}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  });
-                })()
-              )}
-            </div>
+      <div className="flex-1 overflow-y-auto px-2 py-4 sm:px-4">
+        {isLoading ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-20">
+            <CryptoEngineLoader size="md" text="FETCHING LIVE ORACLE DATA..." />
           </div>
-        </div>
-      )}
+        ) : filteredGames.length === 0 ? (
+          <div className="text-center p-12 m-4 border border-dashed rounded-xl" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}>
+            <p className="text-ink-faint font-medium">No live markets available.</p>
+          </div>
+        ) : (
+          Object.entries(gamesByLeague).map(([leagueName, games]) => (
+            <LeagueGroup
+              key={leagueName}
+              name={leagueName}
+              games={games}
+              collapsed={!!collapsedLeagues[leagueName]}
+              onToggleCollapse={() => toggleLeague(leagueName)}
+              selections={selections}
+              onToggle={handleToggle}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }
