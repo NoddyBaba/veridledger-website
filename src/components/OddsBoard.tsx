@@ -313,7 +313,7 @@ function StatusBadge({ status }: { status: Game['status'] }) {
       </div>
     );
   }
-  return <span className="text-2xs font-mono text-ink-dim whitespace-nowrap">{status.time}</span>;
+  return <span className="text-xs font-mono text-ink-dim whitespace-nowrap font-medium">{status.time}</span>;
 }
 
 function TeamLine({ team, score, live }: { team: Game['home'], score?: number, live: boolean }) {
@@ -508,7 +508,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
   }, {} as Record<string, Game[]>);
 
   return (
-    <div className="verid-oddsboard flex-1 flex flex-col min-h-[500px] border border-border rounded-xl overflow-hidden shadow-2xl relative" style={{ backgroundColor: "var(--obsidian)" }}>
+    <div className="verid-oddsboard flex-1 flex flex-col min-h-[500px] max-h-[85vh] md:max-h-full border border-border rounded-xl overflow-hidden shadow-2xl relative" style={{ backgroundColor: "var(--obsidian)" }}>
       <style>{`
         .verid-oddsboard {
           --obsidian: #0a0a0d;
@@ -563,7 +563,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
           )}
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none w-full xl:w-auto pb-1 xl:pb-0">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none w-full xl:w-auto pb-1 xl:pb-0 flex-nowrap shrink-0">
           <button
             onClick={() => setActiveSport("All")}
             className="flex-none flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
@@ -603,7 +603,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
           })}
 
           {otherSports.length > 0 && (
-            <div className="relative flex items-center shrink-0">
+            <div className="relative flex items-center shrink-0 min-w-[80px]">
               <select 
                 value={isOtherSportSelected ? activeSport : ""}
                 onChange={(e) => { setActiveSport(e.target.value); (document.activeElement as HTMLElement)?.blur(); }}
