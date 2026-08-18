@@ -371,7 +371,7 @@ function MatchRow({ match, selections, onToggle, onSelectGame }: { match: Game, 
         <button type="button" onClick={() => onSelectGame(match)} className="flex flex-col gap-1.5 text-left hover:opacity-80 transition-opacity cursor-pointer w-full">
           <TeamLine team={match.home} score={match.score?.home} live={match.status.live} />
           <TeamLine team={match.away} score={match.score?.away} live={match.status.live} />
-        </div>
+        </button>
 
         <div className="flex items-start justify-between gap-2 pt-1 overflow-x-auto scrollbar-none">
           {match.markets.clusters.map((cluster) => (
