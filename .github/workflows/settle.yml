@@ -1,0 +1,15 @@
+name: Auto Grade Picks
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  settle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Settle API
+        run: |
+          curl -X GET "${{ secrets.PROD_URL }}/api/odds/settle"
