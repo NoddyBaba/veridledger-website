@@ -297,6 +297,7 @@ function ChipCluster({ title, children }: { title: string, children: React.React
     <div className="flex flex-col items-center gap-1">
       <span className="text-3xs font-mono uppercase tracking-widest text-ink-faint">{title}</span>
       <div className="flex items-center gap-1.5">{children}</div>
+      <MatchDetailsDrawer game={selectedGame} selections={selections} onToggle={handleToggle} onClose={() => setSelectedGame(null)} />
     </div>
   );
 }
@@ -333,7 +334,7 @@ function TeamLine({ team, score, live }: { team: Game['home'], score?: number, l
   );
 }
 
-function MatchRow({ match, selections, onToggle }: { match: Game, selections: Set<string>, onToggle: (match: Game, chip: ChipData) => void }) {
+function MatchRow({ match, selections, onToggle, onSelectGame }: { match: Game, selections: Set<string>, onToggle: (match: Game, chip: ChipData) => void, onSelectGame: (game: Game) => void }) {
   const matchLabel = match.title;
 
   return (
@@ -346,10 +347,10 @@ function MatchRow({ match, selections, onToggle }: { match: Game, selections: Se
           <StatusBadge status={match.status} />
         </div>
 
-        <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <button type="button" onClick={() => onSelectGame(match)} className="flex-1 min-w-0 flex flex-col gap-1 text-left hover:opacity-80 transition-opacity cursor-pointer">
           <TeamLine team={match.home} score={match.score?.home} live={match.status.live} />
           <TeamLine team={match.away} score={match.score?.away} live={match.status.live} />
-        </div>
+        </button>
 
         <div className="flex-none flex items-center gap-6">
           {match.markets.clusters.map((cluster) => (
@@ -367,7 +368,7 @@ function MatchRow({ match, selections, onToggle }: { match: Game, selections: Se
           <StatusBadge status={match.status} />
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <button type="button" onClick={() => onSelectGame(match)} className="flex flex-col gap-1.5 text-left hover:opacity-80 transition-opacity cursor-pointer w-full">
           <TeamLine team={match.home} score={match.score?.home} live={match.status.live} />
           <TeamLine team={match.away} score={match.score?.away} live={match.status.live} />
         </div>
@@ -386,7 +387,7 @@ function MatchRow({ match, selections, onToggle }: { match: Game, selections: Se
   );
 }
 
-function LeagueGroup({ name, games, collapsed, onToggleCollapse, selections, onToggle }: { name: string, games: Game[], collapsed: boolean, onToggleCollapse: () => void, selections: Set<string>, onToggle: (match: Game, chip: ChipData) => void }) {
+function LeagueGroup({ name, games, collapsed, onToggleCollapse, selections, onToggle, onSelectGame }: { name: string, games: Game[], collapsed: boolean, onToggleCollapse: () => void, selections: Set<string>, onToggle: (match: Game, chip: ChipData) => void, onSelectGame: (game: Game) => void }) {
   const sample = games[0];
   const clusterTitles = sample ? sample.markets.clusters.map((c) => ({ title: c.title, width: clusterWidth(c.chips.length) })) : [];
 
@@ -423,10 +424,96 @@ function LeagueGroup({ name, games, collapsed, onToggleCollapse, selections, onT
       {!collapsed && (
         <div className="flex flex-col">
           {games.map((m) => (
-            <MatchRow key={m.id} match={m} selections={selections} onToggle={onToggle} />
+            <MatchRow key={m.id} match={m} selections={selections} onToggle={onToggle} onSelectGame={onSelectGame} />
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+
+function MatchDetailsDrawer({ game, selections, onToggle, onClose }: { game: Game | null, selections: Set<string>, onToggle: (g: Game, c: ChipData) => void, onClose: () => void }) {
+  if (!game) return null;
+
+  // Render all available markets from rawOdds
+  // For MVP, we will extract markets dynamically
+  const renderAllMarkets = () => {
+    const markets = [];
+    
+    // API-Football format
+    if (game.rawOdds && game.rawOdds.bookmakers && game.rawOdds.bookmakers[0] && game.rawOdds.bookmakers[0].bets) {
+      const bets = game.rawOdds.bookmakers[0].bets;
+      for (const bet of bets) {
+        const chips = bet.values.map((v: any) => ({
+           id: `${game.id}-${bet.id}-${v.value}`,
+           label: String(v.value).substring(0, 10), // Truncate long labels
+           value: normalizeOdds(v.odd),
+           meta: { type: 'prop', selectionName: `${bet.name} - ${v.value}` }
+        }));
+        
+        markets.push(
+          <div key={bet.id} className="mb-4">
+            <h4 className="text-xs font-bold text-ink-dim uppercase tracking-wider mb-2">{bet.name}</h4>
+            <div className="flex flex-wrap gap-2">
+              {chips.map((c: any) => (
+                <OddChip key={c.id} chip={c} matchLabel={game.title} selected={selections.has(c.id)} onToggle={() => onToggle(game, c)} />
+              ))}
+            </div>
+          </div>
+        );
+      }
+    }
+    
+    // TheOddsAPI format
+    else if (game.rawOdds && game.rawOdds.bookmakers) {
+      const bookmaker = game.rawOdds.bookmakers[0];
+      if (bookmaker && bookmaker.markets) {
+        for (const m of bookmaker.markets) {
+           const chips = m.outcomes.map((o: any) => ({
+             id: `${game.id}-${m.key}-${o.name}-${o.point || ''}`,
+             label: `${o.name} ${o.point ? o.point : ''}`.trim(),
+             value: normalizeOdds(o.price),
+             meta: { type: m.key === 'h2h' ? 'ml' : m.key === 'totals' ? 'total' : 'spread', selectionName: `${m.key} - ${o.name} ${o.point ? o.point : ''}` }
+           }));
+           
+           markets.push(
+             <div key={m.key} className="mb-4">
+               <h4 className="text-xs font-bold text-ink-dim uppercase tracking-wider mb-2">{m.key.replace(/_/g, ' ')}</h4>
+               <div className="flex flex-wrap gap-2">
+                 {chips.map((c: any) => (
+                   <OddChip key={c.id} chip={c} matchLabel={game.title} selected={selections.has(c.id)} onToggle={() => onToggle(game, c)} />
+                 ))}
+               </div>
+             </div>
+           );
+        }
+      }
+    }
+
+    return markets;
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex flex-col justify-end pointer-events-none">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm pointer-events-auto transition-opacity" onClick={onClose} />
+      
+      <div className="relative w-full max-h-[85vh] rounded-t-2xl shadow-2xl flex flex-col pointer-events-auto transform transition-transform border-t" style={{ backgroundColor: "var(--obsidian)", borderColor: "var(--border)" }}>
+        
+        <div className="flex-none p-4 border-b flex items-center justify-between" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}>
+          <div className="flex flex-col min-w-0">
+             <span className="text-2xs font-mono text-ink-faint uppercase">{game.competition}</span>
+             <h3 className="text-sm font-bold text-ink truncate">{game.title}</h3>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full surface hover:bg-white/5 transition-colors text-ink-faint">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 scrollbar-none">
+           {renderAllMarkets()}
+        </div>
+      </div>
     </div>
   );
 }
@@ -438,6 +525,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
   const [search, setSearch] = useState("");
   const [collapsedLeagues, setCollapsedLeagues] = useState<Record<string, boolean>>({});
   const [selections, setSelections] = useState<Set<string>>(new Set());
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
   useEffect(() => {
     const fetchLiveEvents = async () => {
@@ -644,6 +732,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
               onToggleCollapse={() => toggleLeague(leagueName)}
               selections={selections}
               onToggle={handleToggle}
+              onSelectGame={setSelectedGame}
             />
           ))
         )}
