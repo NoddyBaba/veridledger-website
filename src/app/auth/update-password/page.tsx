@@ -64,7 +64,7 @@ export default function UpdatePasswordPage() {
           <VeridLogo className="w-12 h-12 text-lime" />
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight text-ink">
-          VERID
+          VE<span className="text-lime">RID</span>
         </h1>
         <p className="text-sm text-slate mt-2 font-medium tracking-wide">SECURE CREDENTIAL UPDATE</p>
       </div>
