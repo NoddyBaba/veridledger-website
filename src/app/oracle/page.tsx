@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 import BottomNav from '@/components/BottomNav';
 import { supabase } from "@/lib/supabase";
 import { Shield, Check, X, Minus, Activity, Clock, Loader2 } from "lucide-react";
@@ -34,6 +35,7 @@ export default function OraclePage() {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
 
   useEffect(() => {
     if (isLoading) return;
@@ -100,13 +102,18 @@ export default function OraclePage() {
   if (isLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary" size={32} />
+        <CryptoEngineLoader size="md" text="INITIALIZING ORACLE..." />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen p-4 sm:p-6 pb-24 max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+      {navigatingTo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/90 backdrop-blur-sm animate-in fade-in">
+          <CryptoEngineLoader size="md" text={`ACCESSING ${navigatingTo}...`} />
+        </div>
+      )}
       <div className="flex flex-col items-center justify-center text-center space-y-3 mt-4 mb-8">
         <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
           <Shield size={32} className="text-red-500" />
@@ -114,7 +121,7 @@ export default function OraclePage() {
         <div>
           <h1 className="text-3xl font-extrabold text-foreground tracking-tight">The Oracle</h1>
           <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto font-medium">Administrator Grading Panel. These actions directly update the global immutable ledger.</p>
-          <Link href="/admin/users" className="inline-block mt-4 text-xs font-bold bg-primary text-black px-4 py-2 rounded-lg hover:scale-105 transition-transform shadow-[0_0_15px_rgba(204,255,0,0.2)]">Open Admin Control Panel</Link>
+          <button onClick={() => { setNavigatingTo("CONTROL PANEL"); router.push("/admin/users"); }} className="inline-block mt-4 text-xs font-bold bg-primary text-black px-4 py-2 rounded-lg hover:scale-105 transition-transform shadow-[0_0_15px_rgba(204,255,0,0.2)]">Open Admin Control Panel</button>
         </div>
       </div>
 

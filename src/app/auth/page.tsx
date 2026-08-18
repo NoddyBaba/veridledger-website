@@ -219,8 +219,12 @@ export default function AuthPage() {
               Return to login
             </button>
           </div>
+        ) : loading ? (
+          <div className="py-12 flex flex-col items-center justify-center animate-in zoom-in-95">
+            <CryptoEngineLoader size="md" text={isLogin ? "AUTHENTICATING..." : "CREATING ACCOUNT..."} />
+          </div>
         ) : (
-          <form onSubmit={handleAuth} className="space-y-5">
+          <form onSubmit={handleAuth} className="space-y-5 animate-in fade-in duration-300">
             {error && (
               <div className="bg-red-500/10 border border-red-500/30 text-red-500 text-sm font-medium p-3 rounded-lg flex items-start gap-2">
                 <span>{error}</span>

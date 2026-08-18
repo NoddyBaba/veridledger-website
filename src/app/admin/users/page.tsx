@@ -6,6 +6,7 @@ import { ShieldAlert, Users, Loader2, ArrowLeft, RefreshCw, UserCheck, User } fr
 import Link from "next/link";
 import OracleSimulator from "@/components/deck/OracleSimulator";
 import { useRouter } from "next/navigation";
+import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 
 export default function AdminUsersPage() {
   const router = useRouter();
@@ -93,8 +94,8 @@ export default function AdminUsersPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-primary" size={32} />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <CryptoEngineLoader size="md" text="INITIALIZING CONTROL PANEL..." />
       </div>
     );
   }

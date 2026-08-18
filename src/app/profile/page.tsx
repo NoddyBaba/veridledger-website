@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import { User, LogOut, Shield, CheckCircle2, AlertTriangle, Edit3, CreditCard, Link as LinkIcon, Camera, LayoutGrid, Activity, Loader2 } from "lucide-react";
@@ -18,6 +19,7 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [navigatingTo, setNavigatingTo] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -150,6 +152,11 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-background pb-24">
+      {navigatingTo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/90 backdrop-blur-sm animate-in fade-in">
+          <CryptoEngineLoader size="md" text={`ACCESSING ${navigatingTo}...`} />
+        </div>
+      )}
       
       {/* Settings Header */}
       <div className="border-b border-border bg-card">
@@ -192,7 +199,7 @@ export default function ProfilePage() {
             {/* Quick Actions (Analysts Only) */}
             {(profile.role === "analyst" || profile.is_admin) && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 <Link href={`/analyst/${profile.username}`} className="group">
+                 <button onClick={() => { setNavigatingTo("PUBLIC PROFILE"); router.push(`/analyst/${profile.username}`); }} className="group text-left w-full">
                    <div className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between hover:border-primary/50 hover:bg-white/[0.02] transition-all">
                      <div className="flex items-center gap-4">
                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
@@ -204,8 +211,8 @@ export default function ProfilePage() {
                        </div>
                      </div>
                    </div>
-                 </Link>
-                 <Link href="/deck" className="group">
+                 </button>
+                 <button onClick={() => { setNavigatingTo("ANALYST TERMINAL"); router.push("/deck"); }} className="group text-left w-full">
                    <div className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between hover:border-secondary/50 hover:bg-white/[0.02] transition-all">
                      <div className="flex items-center gap-4">
                        <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:scale-110 transition-transform">
@@ -217,10 +224,10 @@ export default function ProfilePage() {
                        </div>
                      </div>
                    </div>
-                 </Link>
+                 </button>
                  
                  {profile.is_admin && (
-                    <Link href="/oracle" className="group">
+                    <button onClick={() => { setNavigatingTo("ADMIN DASHBOARD"); router.push("/oracle"); }} className="group text-left w-full">
                       <div className="bg-card border border-border rounded-2xl p-5 flex items-center justify-between hover:border-red-500/50 hover:bg-white/[0.02] transition-all">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
@@ -232,7 +239,7 @@ export default function ProfilePage() {
                           </div>
                         </div>
                       </div>
-                    </Link>
+                    </button>
                  )}
               </div>
             )}
