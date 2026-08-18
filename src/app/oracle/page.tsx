@@ -114,6 +114,7 @@ export default function OraclePage() {
         <div>
           <h1 className="text-3xl font-extrabold text-foreground tracking-tight">The Oracle</h1>
           <p className="text-sm text-muted-foreground mt-2 max-w-sm mx-auto font-medium">Administrator Grading Panel. These actions directly update the global immutable ledger.</p>
+          <Link href="/admin/users" className="inline-block mt-4 text-xs font-bold bg-primary text-black px-4 py-2 rounded-lg hover:scale-105 transition-transform shadow-[0_0_15px_rgba(204,255,0,0.2)]">Open Admin Control Panel</Link>
         </div>
       </div>
 

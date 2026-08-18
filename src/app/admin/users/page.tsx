@@ -234,10 +234,15 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded flex w-fit items-center gap-1 ${
-                      user.role === 'analyst' ? 'bg-secondary/10 text-secondary' : 'bg-primary/10 text-primary'
+                      user.is_admin ? 'bg-red-500/10 text-red-500' : user.role === 'analyst' ? 'bg-secondary/10 text-secondary' : 'bg-primary/10 text-primary'
                     }`}>
-                      {user.role === 'analyst' ? <UserCheck size={10} /> : <User size={10} />}
-                      {user.role}
+                      {user.is_admin ? (
+                         <><ShieldAlert size={10} />ADMIN</>
+                      ) : user.role === 'analyst' ? (
+                         <><UserCheck size={10} />ANALYST</>
+                      ) : (
+                         <><User size={10} />ALLOCATOR</>
+                      )}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
