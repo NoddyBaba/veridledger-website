@@ -17,10 +17,6 @@ export type OddSelection = {
   metadata?: any;
 };
 
-// ---------------------------------------------------------------------------
-// Data Types
-// ---------------------------------------------------------------------------
-
 type ChipData = {
   id: string;
   label: string;
@@ -46,12 +42,8 @@ type Game = {
   away: { name: string; short: string; color: string };
   score?: { home: number; away: number };
   markets: { clusters: ClusterData[] };
-  rawOdds: any;
+  rawOdds: any; oddsApiSportKey?: string;
 };
-
-// ---------------------------------------------------------------------------
-// Parsers
-// ---------------------------------------------------------------------------
 
 function normalizeOdds(odds: number | string): number {
   const o = parseFloat(odds as string);
@@ -107,7 +99,7 @@ function parseApiFootballEvent(eventRow: any): Game | null {
     status: isLive ? { live: true, minute: "LIVE" } : { live: false, time: formatStartTime(eventRow.commence_time) },
     home: { name: eventRow.home_team, short: getShort(eventRow.home_team), color: getColor(eventRow.home_team) },
     away: { name: eventRow.away_team, short: getShort(eventRow.away_team), color: getColor(eventRow.away_team) },
-    rawOdds: data,
+    rawOdds: data, oddsApiSportKey: data.sport_key,
     markets: {
       clusters: [
         {
@@ -156,9 +148,26 @@ function parseTheOddsApiEvent(eventRow: any): Game | null {
 
   const isSoccer = data.sport_key.toLowerCase().includes('soccer');
   let sportName = data.sport_title;
+  let competition = data.sport_title;
   
   if (data.sport_key.toLowerCase().includes('americanfootball') || data.sport_key.toLowerCase().includes('nfl') || data.sport_key.toLowerCase().includes('ncaa')) {
     sportName = "American Football";
+  } else if (data.sport_key.toLowerCase().includes('basketball') || data.sport_key.toLowerCase().includes('nba')) {
+    sportName = "Basketball";
+  } else if (data.sport_key.toLowerCase().includes('tennis') || data.sport_key.toLowerCase().includes('atp') || data.sport_key.toLowerCase().includes('wta')) {
+    sportName = "Tennis";
+  } else if (data.sport_key.toLowerCase().includes('baseball') || data.sport_key.toLowerCase().includes('mlb')) {
+    sportName = "Baseball";
+  } else if (data.sport_key.toLowerCase().includes('mma') || data.sport_key.toLowerCase().includes('ufc')) {
+    sportName = "MMA";
+  } else if (data.sport_key.toLowerCase().includes('afl') || data.sport_key.toLowerCase().includes('aussie')) {
+    sportName = "Aussie Rules";
+  } else if (data.sport_key.toLowerCase().includes('cricket') || data.sport_key.toLowerCase().includes('t20')) {
+    sportName = "Cricket";
+  } else if (data.sport_key.toLowerCase().includes('hockey') || data.sport_key.toLowerCase().includes('nhl')) {
+    sportName = "Ice Hockey";
+  } else if (data.sport_key.toLowerCase().includes('boxing')) {
+    sportName = "Boxing";
   }
 
   const isLive = new Date(data.commence_time).getTime() < Date.now();
@@ -209,7 +218,7 @@ function parseTheOddsApiEvent(eventRow: any): Game | null {
   return {
     id: eventRow.id,
     sport: sportName,
-    competition: data.sport_title,
+    competition: competition,
     title: `${data.home_team} vs ${data.away_team}`,
     startTime: data.commence_time,
     status: isLive ? { live: true, minute: "LIVE" } : { live: false, time: formatStartTime(data.commence_time) },
@@ -219,10 +228,6 @@ function parseTheOddsApiEvent(eventRow: any): Game | null {
     markets: { clusters }
   };
 }
-
-// ---------------------------------------------------------------------------
-// Primitives
-// ---------------------------------------------------------------------------
 
 const clusterWidth = (chipCount: number) => (chipCount >= 3 ? 216 : 150);
 
@@ -328,10 +333,6 @@ function TeamLine({ team, score, live }: { team: Game['home'], score?: number, l
   );
 }
 
-// ---------------------------------------------------------------------------
-// Match row
-// ---------------------------------------------------------------------------
-
 function MatchRow({ match, selections, onToggle }: { match: Game, selections: Set<string>, onToggle: (match: Game, chip: ChipData) => void }) {
   const matchLabel = match.title;
 
@@ -385,10 +386,6 @@ function MatchRow({ match, selections, onToggle }: { match: Game, selections: Se
   );
 }
 
-// ---------------------------------------------------------------------------
-// League group
-// ---------------------------------------------------------------------------
-
 function LeagueGroup({ name, games, collapsed, onToggleCollapse, selections, onToggle }: { name: string, games: Game[], collapsed: boolean, onToggleCollapse: () => void, selections: Set<string>, onToggle: (match: Game, chip: ChipData) => void }) {
   const sample = games[0];
   const clusterTitles = sample ? sample.markets.clusters.map((c) => ({ title: c.title, width: clusterWidth(c.chips.length) })) : [];
@@ -434,14 +431,11 @@ function LeagueGroup({ name, games, collapsed, onToggleCollapse, selections, onT
   );
 }
 
-// ---------------------------------------------------------------------------
-// Root OddsBoard
-// ---------------------------------------------------------------------------
-
 export default function OddsBoard({ onAddSelection }: { onAddSelection: (selection: OddSelection) => void }) {
   const [liveGames, setLiveGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSport, setActiveSport] = useState("All");
+  const [search, setSearch] = useState("");
   const [collapsedLeagues, setCollapsedLeagues] = useState<Record<string, boolean>>({});
   const [selections, setSelections] = useState<Set<string>>(new Set());
 
@@ -476,7 +470,6 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
     }
     setSelections(newActive);
 
-    // Communicate up to parent
     onAddSelection({
       id: chip.id,
       gameId: game.id,
@@ -486,7 +479,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
       selectionName: chip.meta.selectionName,
       odds: chip.value,
       startTime: game.startTime,
-      metadata: { ...chip.meta, homeTeam: game.home.name, awayTeam: game.away.name }
+      metadata: { ...chip.meta, homeTeam: game.home.name, awayTeam: game.away.name, oddsApiSportKey: game.oddsApiSportKey }
     });
   };
 
@@ -497,9 +490,17 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
   };
 
   const allAvailableSports = getDynamicSports();
-  
-  // Group logic
-  const filteredGames = activeSport === "All" ? liveGames : liveGames.filter(g => g.sport === activeSport);
+  const coreSportsOrder = ["Football", "Basketball", "Tennis", "American Football", "Ice Hockey", "Baseball"];
+  const availableCoreSports = coreSportsOrder.filter(s => allAvailableSports.includes(s));
+  const otherSports = allAvailableSports.filter(s => !coreSportsOrder.includes(s));
+  const isOtherSportSelected = otherSports.includes(activeSport);
+
+  const filteredGames = liveGames.filter(g => 
+    (activeSport === "All" || g.sport === activeSport) &&
+    (g.title.toLowerCase().includes(search.toLowerCase()) || 
+     g.competition.toLowerCase().includes(search.toLowerCase()))
+  );
+
   const gamesByLeague = filteredGames.reduce((acc, game) => {
     if (!acc[game.competition]) acc[game.competition] = [];
     acc[game.competition].push(game);
@@ -543,43 +544,85 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
         }
       `}</style>
 
-      {/* Sport tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-none px-4 py-3 border-b" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}>
-        <button
-          onClick={() => setActiveSport("All")}
-          className="flex-none flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: activeSport === "All" ? "var(--lime)" : "var(--surface)",
-            color: activeSport === "All" ? "var(--obsidian)" : "var(--ink-dim)",
-          }}
-        >
-          All Sports
-        </button>
-        {allAvailableSports.map((s) => {
-          const active = activeSport === s;
-          const hasLive = liveGames.some((g) => g.sport === s && g.status.live);
-          return (
-            <button
-              key={s}
-              onClick={() => setActiveSport(s)}
-              className="flex-none flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors border"
-              style={{
-                backgroundColor: active ? "var(--lime)" : "var(--surface)",
-                borderColor: active ? "var(--lime)" : "var(--border)",
-                color: active ? "var(--obsidian)" : "var(--ink)",
-              }}
-            >
-              <span className="text-3xs font-mono opacity-70 uppercase">{s.substring(0,3)}</span>
-              {s}
-              {hasLive && (
-                <span
-                  className="h-1.5 w-1.5 rounded-full"
-                  style={{ backgroundColor: active ? "var(--obsidian)" : "var(--live)" }}
-                />
-              )}
+      {/* Top Search & Tabs */}
+      <div className="p-4 border-b flex flex-col xl:flex-row gap-3 xl:items-center" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}>
+        <div className="relative w-full xl:max-w-[280px] flex-none">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+          <input 
+            type="text" 
+            placeholder="Search matches or leagues..." 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full border rounded-full pl-9 pr-8 py-2 text-sm focus:outline-none transition-colors"
+            style={{ backgroundColor: "var(--surface)", borderColor: "var(--border)", color: "var(--ink)" }}
+          />
+          {search && (
+            <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5" style={{ color: "var(--ink-faint)" }}>
+              <X size={12} />
             </button>
-          );
-        })}
+          )}
+        </div>
+
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none w-full xl:w-auto pb-1 xl:pb-0">
+          <button
+            onClick={() => setActiveSport("All")}
+            className="flex-none flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: activeSport === "All" ? "var(--lime)" : "var(--surface)",
+              color: activeSport === "All" ? "var(--obsidian)" : "var(--ink-dim)",
+              border: `1px solid ${activeSport === "All" ? "var(--lime)" : "var(--border)"}`
+            }}
+          >
+            All Sports
+          </button>
+          
+          {availableCoreSports.map((s) => {
+            const active = activeSport === s;
+            const hasLive = liveGames.some((g) => g.sport === s && g.status.live);
+            return (
+              <button
+                key={s}
+                onClick={() => setActiveSport(s)}
+                className="flex-none flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors border"
+                style={{
+                  backgroundColor: active ? "var(--lime)" : "var(--surface)",
+                  borderColor: active ? "var(--lime)" : "var(--border)",
+                  color: active ? "var(--obsidian)" : "var(--ink)",
+                }}
+              >
+                <span className="text-3xs font-mono opacity-70 uppercase">{s.substring(0,3)}</span>
+                {s}
+                {hasLive && (
+                  <span
+                    className="h-1.5 w-1.5 rounded-full"
+                    style={{ backgroundColor: active ? "var(--obsidian)" : "var(--live)" }}
+                  />
+                )}
+              </button>
+            );
+          })}
+
+          {otherSports.length > 0 && (
+            <div className="relative flex items-center shrink-0">
+              <select 
+                value={isOtherSportSelected ? activeSport : ""}
+                onChange={(e) => { setActiveSport(e.target.value); (document.activeElement as HTMLElement)?.blur(); }}
+                className="appearance-none outline-none flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors cursor-pointer pr-8 border"
+                style={{
+                  backgroundColor: isOtherSportSelected ? "var(--lime)" : "var(--surface)",
+                  borderColor: isOtherSportSelected ? "var(--lime)" : "var(--border)",
+                  color: isOtherSportSelected ? "var(--obsidian)" : "var(--ink-dim)"
+                }}
+              >
+                <option value="" disabled hidden>More</option>
+                {otherSports.map(sport => (
+                  <option key={sport} value={sport} style={{ color: "var(--ink)", backgroundColor: "var(--surface)" }}>{sport}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-70" />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-2 py-4 sm:px-4">

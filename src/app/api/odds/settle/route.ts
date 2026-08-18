@@ -121,24 +121,37 @@ export async function GET() {
         return acc;
       }, {} as Record<string, any[]>);
 
+      // Group by actual oddsApiSportKey if we have it, else fallback to a mapped array of keys
       for (const [sport, picks] of Object.entries(picksBySport)) {
-        // Map our friendly sport names back to The-Odds-API keys
-        let oddsApiSportKey = sport;
-        if (sport === 'American Football') oddsApiSportKey = 'americanfootball_nfl'; // Simple fallback
-        else if (sport === 'Basketball') oddsApiSportKey = 'basketball_nba';
-        else if (sport === 'Ice Hockey') oddsApiSportKey = 'icehockey_nhl';
-        else if (sport === 'Baseball') oddsApiSportKey = 'baseball_mlb';
-        // Note: For a robust system we should save the exact sport_key in metadata, but this works for MVP
-
-        // We fetch multiple days back just in case
-        const response = await fetch(`https://api.the-odds-api.com/v4/sports/${oddsApiSportKey}/scores/?apiKey=${ODDS_API_KEY}&daysFrom=3`);
-        
-        if (!response.ok) {
-          console.error(`Failed to fetch scores for ${oddsApiSportKey}`);
-          continue;
+        // Find unique sport keys needed for these picks
+        const keysToFetch = new Set<string>();
+        for (const p of picks as any[]) {
+          if (p.selection_metadata?.oddsApiSportKey) {
+            keysToFetch.add(p.selection_metadata.oddsApiSportKey);
+          } else {
+            // Legacy mapping for picks that didn't save oddsApiSportKey
+            if (sport === 'American Football') keysToFetch.add('americanfootball_nfl');
+            else if (sport === 'Basketball') keysToFetch.add('basketball_nba');
+            else if (sport === 'Ice Hockey') keysToFetch.add('icehockey_nhl');
+            else if (sport === 'Baseball') keysToFetch.add('baseball_mlb');
+            else if (sport === 'Tennis') { keysToFetch.add('tennis_atp'); keysToFetch.add('tennis_wta'); }
+            else if (sport === 'Boxing') keysToFetch.add('boxing_boxing');
+            else if (sport === 'MMA') keysToFetch.add('mma_mixed_martial_arts');
+            else if (sport === 'Aussie Rules') keysToFetch.add('aussierules_afl');
+          }
         }
 
-        const scoresData = await response.json();
+        // Fetch scores for all required keys and combine them
+        let scoresData: any[] = [];
+        for (const key of Array.from(keysToFetch)) {
+          const response = await fetch(`https://api.the-odds-api.com/v4/sports/${key}/scores/?apiKey=${ODDS_API_KEY}&daysFrom=3`);
+          if (response.ok) {
+            const data = await response.json();
+            scoresData = [...scoresData, ...data];
+          }
+        }
+        
+        if (scoresData.length === 0) continue; // No data fetched for any key
 
         for (const pick of (picks as any[])) {
           if (!pick.selection_metadata) continue;
