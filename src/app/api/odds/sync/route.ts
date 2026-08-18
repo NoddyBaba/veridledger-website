@@ -30,7 +30,17 @@ export async function GET(request: Request) {
     }
 
     const allEvents = await response.json();
-    const events = allEvents.filter((e: any) => !e.sport_key.toLowerCase().includes("soccer"));
+    
+    // We only want the 14 sports NOT covered by API-Sports
+    const apiSportsKeywords = [
+      "soccer", "basketball", "nba", "americanfootball", "nfl", "baseball",
+      "aussierules", "formula1", "handball", "hockey", "mma", "rugby", "volleyball"
+    ];
+
+    const events = allEvents.filter((e: any) => {
+      const key = e.sport_key.toLowerCase();
+      return !apiSportsKeywords.some(keyword => key.includes(keyword));
+    });
 
     // 2. Initialize Supabase with the Service Role Key to bypass RLS
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
