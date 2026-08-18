@@ -576,8 +576,10 @@ export default function OddsBoard({ activeSelectionIds = [], onAddSelection, onR
     } else {
       onAddSelection({
         id: chip.id,
+        gameId: game.id,
         sport: game.sport,
         matchTitle: game.title,
+        type: chip.meta.type,
         selectionName: chip.meta.selectionName,
         odds: chip.value,
         startTime: game.startTime,
