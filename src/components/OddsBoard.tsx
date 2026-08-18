@@ -297,7 +297,7 @@ function ChipCluster({ title, children }: { title: string, children: React.React
     <div className="flex flex-col items-center gap-1">
       <span className="text-3xs font-mono uppercase tracking-widest text-ink-faint">{title}</span>
       <div className="flex items-center gap-1.5">{children}</div>
-      <MatchDetailsDrawer game={selectedGame} selections={selections} onToggle={handleToggle} onClose={() => setSelectedGame(null)} />
+      
     </div>
   );
 }
@@ -737,6 +737,7 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
           ))
         )}
       </div>
+      <MatchDetailsDrawer game={selectedGame} selections={selections} onToggle={handleToggle} onClose={() => setSelectedGame(null)} />
     </div>
   );
 }
