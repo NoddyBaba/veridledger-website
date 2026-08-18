@@ -6,6 +6,7 @@ import CryptoEngineLoader from "@/components/CryptoEngineLoader";
 import { OddSelection } from "./OddsBoard";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/AuthContext";
+import dayjs from "dayjs";
 
 export default function BetSlipDrawer({ 
   isOpen, 
@@ -148,7 +149,7 @@ export default function BetSlipDrawer({
         {/* Header */}
         <div className="p-4 border-b border-border flex justify-between items-center bg-background/50">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-foreground">Bet Slip</h2>
+            <h2 className="text-lg font-bold text-foreground">Odd Slip</h2>
             {selections.length > 0 && (
               <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
                 {selections.length}
@@ -193,17 +194,20 @@ export default function BetSlipDrawer({
                   <div key={sel.id} className="bg-background border border-border rounded-lg p-3 relative group">
                     <button 
                       onClick={() => onRemoveSelection(sel.id)}
-                      className="absolute right-2 top-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500"
+                      className="absolute right-2 top-2 text-muted-foreground hover:text-red-500 transition-colors p-1"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={16} />
                     </button>
                     <div className="pr-6">
                       <div className="flex justify-between items-start mb-1">
                         <span className="font-bold text-sm text-foreground">{sel.selectionName}</span>
                         <span className="font-mono text-xs text-muted-foreground">{sel.odds > 0 ? `+${sel.odds}` : sel.odds}</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {sel.matchTitle}
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[10px] text-muted-foreground">{sel.matchTitle}</span>
+                        <span className="text-[10px] font-mono text-muted-foreground/70 flex items-center gap-1">
+                           {dayjs(sel.startTime).format('MMM D, h:mm A')}
+                        </span>
                       </div>
                     </div>
                   </div>

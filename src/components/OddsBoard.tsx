@@ -96,7 +96,7 @@ function parseApiFootballEvent(eventRow: any): Game | null {
     competition: data.league_name || "Football",
     title: `${eventRow.home_team} vs ${eventRow.away_team}`,
     startTime: eventRow.commence_time,
-    status: isLive ? { live: true, minute: "LIVE" } : { live: false, time: formatStartTime(eventRow.commence_time) },
+    status: { live: isLive, minute: isLive ? "LIVE" : undefined, time: formatStartTime(eventRow.commence_time) },
     home: { name: eventRow.home_team, short: getShort(eventRow.home_team), color: getColor(eventRow.home_team) },
     away: { name: eventRow.away_team, short: getShort(eventRow.away_team), color: getColor(eventRow.away_team) },
     rawOdds: data, oddsApiSportKey: data.sport_key,
@@ -221,7 +221,7 @@ function parseTheOddsApiEvent(eventRow: any): Game | null {
     competition: competition,
     title: `${data.home_team} vs ${data.away_team}`,
     startTime: data.commence_time,
-    status: isLive ? { live: true, minute: "LIVE" } : { live: false, time: formatStartTime(data.commence_time) },
+    status: { live: isLive, minute: isLive ? "LIVE" : undefined, time: formatStartTime(data.commence_time) },
     home: { name: data.home_team, short: getShort(data.home_team), color: getColor(data.home_team) },
     away: { name: data.away_team, short: getShort(data.away_team), color: getColor(data.away_team) },
     rawOdds: data,
@@ -305,12 +305,15 @@ function ChipCluster({ title, children }: { title: string, children: React.React
 function StatusBadge({ status }: { status: Game['status'] }) {
   if (status.live) {
     return (
-      <div className="flex items-center gap-1.5">
-        <span className="relative flex h-2 w-2">
-          <span className="live-ping absolute inline-flex h-full w-full rounded-full" style={{ backgroundColor: "var(--live)" }} />
-          <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: "var(--live)" }} />
-        </span>
-        <span className="text-2xs font-mono font-semibold text-live">{status.minute}</span>
+      <div className="flex flex-col items-start justify-center">
+        <span className="text-[10px] font-mono text-ink-dim whitespace-nowrap font-medium leading-none mb-1">{status.time}</span>
+        <div className="flex items-center gap-1.5">
+          <span className="relative flex h-2 w-2">
+            <span className="live-ping absolute inline-flex h-full w-full rounded-full" style={{ backgroundColor: "var(--live)" }} />
+            <span className="relative inline-flex h-2 w-2 rounded-full" style={{ backgroundColor: "var(--live)" }} />
+          </span>
+          <span className="text-[10px] font-mono font-semibold text-live leading-none">{status.minute}</span>
+        </div>
       </div>
     );
   }
@@ -516,7 +519,11 @@ function MatchDetailsDrawer({ game, selections, onToggle, onClose }: { game: Gam
         
         <div className="flex-none p-4 border-b flex items-center justify-between" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}>
           <div className="flex flex-col min-w-0">
-             <span className="text-2xs font-mono text-ink-faint uppercase">{game.competition}</span>
+             <div className="flex items-center gap-2">
+               <span className="text-2xs font-mono text-ink-faint uppercase">{game.competition}</span>
+               <span className="text-2xs font-mono text-ink-dim">•</span>
+               <span className="text-2xs font-mono text-ink-dim">{game.status.live ? "LIVE" : game.status.time}</span>
+             </div>
              <h3 className="text-sm font-bold text-ink truncate">{game.title}</h3>
           </div>
           <button onClick={onClose} className="p-2 rounded-full surface hover:bg-white/5 transition-colors text-ink-faint">
@@ -532,13 +539,13 @@ function MatchDetailsDrawer({ game, selections, onToggle, onClose }: { game: Gam
   );
 }
 
-export default function OddsBoard({ onAddSelection }: { onAddSelection: (selection: OddSelection) => void }) {
+export default function OddsBoard({ activeSelectionIds = [], onAddSelection, onRemoveSelection }: { activeSelectionIds?: string[], onAddSelection: (selection: OddSelection) => void, onRemoveSelection?: (id: string) => void }) {
   const [liveGames, setLiveGames] = useState<Game[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeSport, setActiveSport] = useState("All");
   const [search, setSearch] = useState("");
   const [collapsedLeagues, setCollapsedLeagues] = useState<Record<string, boolean>>({});
-  const [selections, setSelections] = useState<Set<string>>(new Set());
+  const selections = new Set(activeSelectionIds);
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
   useEffect(() => {
@@ -564,25 +571,19 @@ export default function OddsBoard({ onAddSelection }: { onAddSelection: (selecti
   const toggleLeague = (id: string) => setCollapsedLeagues((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const handleToggle = (game: Game, chip: ChipData) => {
-    const newActive = new Set(selections);
-    if (newActive.has(chip.id)) {
-      newActive.delete(chip.id);
+    if (selections.has(chip.id)) {
+      if (onRemoveSelection) onRemoveSelection(chip.id);
     } else {
-      newActive.add(chip.id);
+      onAddSelection({
+        id: chip.id,
+        sport: game.sport,
+        matchTitle: game.title,
+        selectionName: chip.meta.selectionName,
+        odds: chip.value,
+        startTime: game.startTime,
+        metadata: { ...chip.meta, homeTeam: game.home.name, awayTeam: game.away.name, oddsApiSportKey: game.oddsApiSportKey, legOdds: chip.value }
+      });
     }
-    setSelections(newActive);
-
-    onAddSelection({
-      id: chip.id,
-      gameId: game.id,
-      sport: game.sport,
-      matchTitle: game.title,
-      type: chip.meta.type,
-      selectionName: chip.meta.selectionName,
-      odds: chip.value,
-      startTime: game.startTime,
-      metadata: { ...chip.meta, homeTeam: game.home.name, awayTeam: game.away.name, oddsApiSportKey: game.oddsApiSportKey, legOdds: chip.value }
-    });
   };
 
   const getDynamicSports = () => {

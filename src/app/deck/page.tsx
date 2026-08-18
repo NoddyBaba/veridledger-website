@@ -255,7 +255,11 @@ export default function DeckPage() {
             </div>
             <div className="flex-1 overflow-hidden relative flex">
                <div className="flex-1 h-full overflow-hidden md:border-r border-border">
-                 <OddsBoard onAddSelection={handleAddSelection} />
+                 <OddsBoard 
+                   onAddSelection={handleAddSelection} 
+                   onRemoveSelection={handleRemoveSelection}
+                   activeSelectionIds={selections.map(s => s.id)}
+                 />
                </div>
             </div>
             {selections.length > 0 && !isSlipDrawerOpen && (
